@@ -14,14 +14,18 @@
   ],
   "author": {
     "name": "Aslam Hasib",
-    "email": "hello@brandbes.com",
-    "url": "https://brandbes.com"
+    "email": "hello@hasthemes.com",
+    "url": "https://hasthemes.com"
   },
   "license": "SEE LICENSE IN LICENSE",
-  "homepage": "https://github.com/Brandbes-Astro-Themes/dojeen",
+  "homepage": "/",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Brandbes-Astro-Themes/dojeen.git"
+    "url": "#"
+  },
+  "bugs": {
+    "url": "#",
+    "email": "support@hasthemes.com"
   },
   "engines": {
     "node": ">=22.12.0"
