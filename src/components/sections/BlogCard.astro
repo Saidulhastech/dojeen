@@ -1,0 +1,35 @@
+---
+import type { Post } from '@/types';
+
+interface Props {
+  post: Post;
+  headingTag?: 'h2' | 'h3';
+  bgColor?: string;
+}
+
+const { post, headingTag = 'h3', bgColor = 'rgb(242,242,242)' } = Astro.props;
+const HeadingTag = headingTag;
+const categorySlug = post.category.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and');
+---
+
+<div class="blog-card-block">
+  <a href={`/blog/${post.slug}`} class="blog-thumbnail-block w-inline-block">
+    <img src={`/images/${post.thumbnail}`} loading="lazy" alt={post.title} class="blog-thumbnail" />
+  </a>
+  <div class="blog-card-content-block" style={`background-color:${bgColor}`}>
+    <div class="blog-meta-wrapper">
+      <div class="blog-meta-block">
+        <img src="/images/blog-meta-icon-1.svg" loading="lazy" alt="Date" class="blog-meta-icon" />
+        <div class="blog-meta-text">{post.date}</div>
+      </div>
+      <div class="blog-meta-separator"></div>
+      <a href={`/blog/category/${categorySlug}`} class="blog-meta-link-block w-inline-block">
+        <img src="/images/blog-meta-icon-2.svg" loading="lazy" alt="Category" class="blog-meta-icon" />
+        <div class="blog-meta-text">{post.category}</div>
+      </a>
+    </div>
+    <a aria-label={post.title} href={`/blog/${post.slug}`} class="blog-title-link w-inline-block">
+      <HeadingTag class="blog-card-title">{post.title}</HeadingTag>
+    </a>
+  </div>
+</div>

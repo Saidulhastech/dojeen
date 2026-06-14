@@ -1,0 +1,78 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Header from '@/components/layout/Header.astro';
+import Footer from '@/components/layout/Footer.astro';
+import CommonHero from '@/components/ui/CommonHero.astro';
+import BlogCard from '@/components/sections/BlogCard.astro';
+import { authors } from '@/data/authors';
+import { getPostsByAuthor } from '@/data/blog';
+import type { Author } from '@/types';
+
+interface Props {
+  author: Author;
+}
+
+export const getStaticPaths = () => {
+  return authors.map((author) => ({
+    params: { slug: author.slug },
+    props: { author },
+  }));
+};
+
+const { author } = Astro.props;
+const authorPosts = getPostsByAuthor(author.slug);
+---
+
+<BaseLayout title={`${author.name} — Dojeen Blog`} description={author.bio}>
+  <Header variant="default" />
+  <main class="main-wrapper">
+
+    <CommonHero subtitle="Blog Author" title={author.name} />
+
+    <!-- Author Bio Section -->
+    <section class="author-section">
+      <div class="section-gap">
+        <div class="w-layout-blockcontainer container-default w-container">
+          <div class="author-wrapper">
+            <div class="author-card-block reveal">
+              <div class="author-image-block">
+                <img src={`/images/${author.avatar}`} loading="lazy" alt={author.name} class="author-image" />
+              </div>
+              <div class="author-info-block">
+                <div class="author-role">{author.role}</div>
+                <h2 class="author-name">{author.name}</h2>
+                <p class="author-bio">{author.bio}</p>
+                <div class="author-post-count">{authorPosts.length} Articles Published</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Author Posts -->
+    <section class="blog-section">
+      <div class="section-gap-bottom">
+        <div class="w-layout-blockcontainer container-default w-container">
+          <div class="section-title-block center">
+            <div class="section-subtitle reveal">By {author.name}</div>
+            <h2 class="section-title reveal">Latest Articles</h2>
+          </div>
+          {authorPosts.length > 0 ? (
+            <div class="blog-collection-list">
+              {authorPosts.map((post) => (
+                <div class="blog-collection-item">
+                  <BlogCard post={post} headingTag="h3" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p class="empty-state-text">No posts found from this author.</p>
+          )}
+        </div>
+      </div>
+    </section>
+
+  </main>
+  <Footer />
+</BaseLayout>

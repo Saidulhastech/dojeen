@@ -1,0 +1,92 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Header from '@/components/layout/Header.astro';
+import Footer from '@/components/layout/Footer.astro';
+import { posts } from '@/data/blog';
+import type { Post } from '@/types';
+import type { GetStaticPaths } from 'astro';
+
+export const getStaticPaths: GetStaticPaths = () => {
+  return posts.map((post) => ({
+    params: { slug: post.slug },
+    props: { post },
+  }));
+};
+
+interface Props {
+  post: Post;
+}
+
+const { post } = Astro.props;
+const categorySlug = post.category.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and');
+---
+
+<BaseLayout title={`${post.title} — Dojeen Blog`} description={post.excerpt}>
+  <Header variant="default" currentPath={Astro.url.pathname} />
+  <main class="main-wrapper">
+
+    <section class="blog-details-section page-top-gap">
+      <div class="cms-hero-gap">
+        <div class="w-layout-blockcontainer container-default w-container">
+
+          <!-- Post Image -->
+          <div class="blog-main-image-block">
+            <img
+              src={`/images/${post.thumbnail}`}
+              loading="lazy"
+              alt="Blog Image"
+              class="blog-image"
+            />
+          </div>
+
+          <!-- Header: Meta + Title -->
+          <div class="blog-details-header-block">
+            <div class="blog-details-meta-wrapper">
+              <div class="blog-meta-block">
+                <img loading="lazy" src="/images/blog-meta-icon-1.svg" alt="Blog Meta Icon" class="blog-meta-icon" />
+                <div class="blog-meta-text">{post.date}</div>
+              </div>
+              <div class="blog-meta-separator"></div>
+              <a href={`/blog/category/${categorySlug}`} class="blog-meta-link-block w-inline-block">
+                <img loading="lazy" src="/images/blog-meta-icon-2.svg" alt="Blog Meta Icon" class="blog-meta-icon" />
+                <div class="blog-meta-text">{post.category}</div>
+              </a>
+            </div>
+            <div class="blog-title-inner">
+              <h1 class="blog-main-title">{post.title}</h1>
+            </div>
+          </div>
+
+          <!-- Rich Text Content -->
+          <div class="blog-details-rich-text w-richtext" set:html={post.content} />
+
+          <!-- Back to Home -->
+          <div class="button-wrapper center">
+            <a href="/" class="secondary-button border-color w-inline-block">
+              <div class="button-text-block">
+                <div class="w-embed">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="19" height="20" viewBox="0 0 19 20" fill="none">
+                    <g clip-path="url(#clip0_post_home)">
+                      <path d="M8.01517 18.3719H3.97786C3.34944 18.3699 2.74718 18.1212 2.30201 17.6797C1.85684 17.2383 1.60474 16.6398 1.60052 16.0143V8.02441C1.60177 7.80916 1.65033 7.59678 1.74278 7.40219C1.83524 7.20759 1.96936 7.03549 2.13572 6.89795L2.84646 6.37422C2.97207 6.24081 3.04702 6.06799 3.05841 5.88551C3.0698 5.70303 3.01692 5.52231 2.90887 5.37445C2.80082 5.2266 2.64436 5.12085 2.46642 5.07543C2.28849 5.03 2.10021 5.04774 1.93399 5.12558L1.20566 5.66682C0.843044 5.94604 0.548286 6.30298 0.343279 6.71113C0.138273 7.11928 0.0282849 7.56815 0.0214844 8.02441V16.0229C0.0236533 17.0666 0.441169 18.0669 1.18265 18.805C1.92414 19.5431 2.9292 19.9587 3.97786 19.961H8.01517C8.12033 19.9633 8.22489 19.9447 8.32273 19.9063C8.42057 19.8678 8.5097 19.8103 8.5849 19.7371C8.6601 19.6639 8.71985 19.5765 8.76064 19.48C8.80144 19.3835 8.82245 19.2799 8.82245 19.1752C8.82245 19.0705 8.80144 18.9669 8.76064 18.8704C8.71985 18.7739 8.6601 18.6865 8.5849 18.6133C8.5097 18.5401 8.42057 18.4826 8.32273 18.4441C8.22489 18.4057 8.12033 18.3871 8.01517 18.3894V18.3719Z" fill="currentColor"></path>
+                      <path d="M18.9795 8.00698C18.975 7.55391 18.8696 7.10746 18.671 6.6998C18.4723 6.29213 18.1853 5.93339 17.8305 5.64939L11.7677 0.838107C11.1211 0.32081 10.3164 0.0388184 9.48676 0.0388184C8.65715 0.0388184 7.85241 0.32081 7.20579 0.838107L5.28468 2.22643C5.11131 2.35027 4.99448 2.53758 4.95987 2.74715C4.92527 2.95673 4.97573 3.1714 5.10015 3.34394C5.22457 3.51649 5.41277 3.63277 5.62333 3.66722C5.8339 3.70166 6.04958 3.65144 6.22295 3.5276L8.17103 2.07818C8.54182 1.77476 9.00694 1.60889 9.48696 1.60889C9.96698 1.60889 10.4321 1.77476 10.8029 2.07818L16.8653 6.88947C17.0377 7.02532 17.1775 7.19766 17.2746 7.39398C17.3717 7.5903 17.4236 7.80569 17.4267 8.02449V16.0229C17.4267 16.3325 17.3654 16.6391 17.2464 16.9251C17.1273 17.2112 16.9529 17.4711 16.7329 17.69C16.5129 17.9089 16.2518 18.0826 15.9644 18.2011C15.677 18.3195 15.369 18.3805 15.0579 18.3805H13.2596C13.1711 18.3805 13.0863 18.3455 13.0238 18.2833C12.9613 18.2211 12.9261 18.1366 12.9261 18.0486V14.4424C12.9261 13.8904 12.7064 13.3609 12.3151 12.9698C11.9237 12.5787 11.3926 12.3579 10.8381 12.3556H8.20622C7.93087 12.3556 7.65821 12.4095 7.40381 12.5144C7.14941 12.6192 6.91825 12.7729 6.72355 12.9667C6.52885 13.1605 6.37441 13.3906 6.26907 13.6438C6.16372 13.897 6.10952 14.1683 6.10957 14.4424V15.8222C6.10723 15.9268 6.12592 16.0309 6.16455 16.1283C6.20317 16.2256 6.26096 16.3144 6.3345 16.3892C6.40805 16.464 6.49587 16.5235 6.59283 16.5641C6.68978 16.6047 6.7939 16.6256 6.89909 16.6256C7.00427 16.6256 7.1084 16.6047 7.20535 16.5641C7.3023 16.5235 7.39013 16.464 7.46368 16.3892C7.53722 16.3144 7.595 16.2256 7.63363 16.1283C7.67225 16.0309 7.69095 15.9268 7.68861 15.8222V14.4424C7.68736 14.3752 7.69958 14.3084 7.72457 14.2459C7.74955 14.1835 7.78679 14.1266 7.8341 14.0787C7.88142 14.0307 7.93787 13.9926 8.00015 13.9666C8.06243 13.9406 8.1293 13.9272 8.19684 13.9272H10.8295C10.9643 13.9272 11.0935 13.9805 11.1888 14.0754C11.2842 14.1702 11.3377 14.2989 11.3377 14.433V18.0478C11.34 18.5536 11.5434 19.0378 11.9035 19.3946C12.2636 19.7514 12.7511 19.9517 13.2592 19.9517H15.0126C15.5323 19.9519 16.0469 19.8502 16.5271 19.6525C17.0073 19.4547 17.4436 19.1647 17.8112 18.7991C18.1788 18.4335 18.4704 17.9994 18.6694 17.5215C18.8684 17.0437 18.9708 16.5316 18.9709 16.0144L18.9795 8.00698Z" fill="currentColor"></path>
+                    </g>
+                    <defs>
+                      <clipPath id="clip0_post_home">
+                        <rect width="19" height="20" fill="white"></rect>
+                      </clipPath>
+                    </defs>
+                  </svg>
+                </div>
+                <div class="button-text">Back to Home</div>
+              </div>
+              <div class="button-bg secondary"></div>
+            </a>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+  <Footer />
+</BaseLayout>

@@ -1,0 +1,214 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Login &amp; Register — Dojeen" description="Sign in or create an account to continue shopping.">
+  <div class="user-wrapper">
+    <div class="user-image-block">
+      <img
+        src="/images/login-image.webp"
+        loading="lazy"
+        sizes="(max-width: 1880px) 100vw, 1880px"
+        srcset="/images/login-image-p-500.webp 500w, /images/login-image-p-800.webp 800w, /images/login-image-p-1080.webp 1080w, /images/login-image-p-1600.webp 1600w, /images/login-image.webp 1880w"
+        alt="Login Image"
+        class="login-image"
+      />
+    </div>
+    <div class="user-form-main">
+      <div class="user-logo-link">
+        <a href="/" class="header-logo-link w-inline-block">
+          <img alt="Brand Logo" src="/images/brand-logo.png" class="header-logo" />
+        </a>
+      </div>
+      <div
+        data-current="Tab 1"
+        data-easing="ease"
+        data-duration-in="300"
+        data-duration-out="100"
+        class="user-tab w-tabs"
+        id="authTabs"
+      >
+        <div class="user-tab-menu w-tab-menu">
+          <a data-w-tab="Tab 1" class="user-tab-link w-inline-block w-tab-link w--current" id="tabSignIn" href="#">
+            <div>Sign In</div>
+          </a>
+          <a data-w-tab="Tab 2" class="user-tab-link w-inline-block w-tab-link" id="tabSignUp" href="#">
+            <div>Sign Up</div>
+          </a>
+        </div>
+        <div class="user-tabs-content w-tab-content">
+          <div data-w-tab="Tab 1" class="user-tab-pane w-tab-pane w--tab-active" id="paneSignIn">
+            <div class="user-form-container">
+              <div class="user-form-block w-form">
+                <form
+                  id="wf-form-Sign-In-Form"
+                  name="wf-form-Sign-In-Form"
+                  data-name="Sign In Form"
+                  method="get"
+                  class="user-form"
+                >
+                  <div class="user-form-wrapper">
+                    <div class="input-field-wrapper">
+                      <label for="signInEmail" class="user-form-label">Email</label>
+                      <input
+                        class="user-input-field w-input"
+                        maxlength="256"
+                        name="Email"
+                        id="signInEmail"
+                        placeholder="Enter your email"
+                        type="email"
+                        required
+                      />
+                    </div>
+                    <div class="input-field-wrapper">
+                      <label for="signInPassword" class="user-form-label">Password</label>
+                      <input
+                        class="user-input-field w-input"
+                        maxlength="256"
+                        name="Password"
+                        id="signInPassword"
+                        placeholder="Enter your password"
+                        type="password"
+                        required
+                      />
+                    </div>
+                    <div class="input-field-wrapper">
+                      <a href="/auth/forgot-password" class="user-text-link">Forgot Password?</a>
+                    </div>
+                    <div class="user-submit-button-wrapper">
+                      <input
+                        type="submit"
+                        data-wait="Please wait..."
+                        class="user-submit-button w-button"
+                        value="Sign In Now"
+                      />
+                    </div>
+                  </div>
+                </form>
+                <div class="success-message w-form-done" id="signInSuccess" style="display:none">
+                  <div>Thank you! Your submission has been received!</div>
+                </div>
+                <div class="error-message w-form-fail" id="signInError" style="display:none">
+                  <div>Oops! Something went wrong while submitting the form.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div data-w-tab="Tab 2" class="user-tab-pane w-tab-pane" id="paneSignUp">
+            <div class="user-form-container">
+              <div class="user-form-block w-form">
+                <form
+                  id="wf-form-Sign-Up-Form"
+                  name="wf-form-Sign-Up-Form"
+                  data-name="Sign Up Form"
+                  method="get"
+                  class="user-form"
+                >
+                  <div class="user-form-wrapper">
+                    <div class="input-field-wrapper">
+                      <label for="signUpEmail" class="user-form-label">Email</label>
+                      <input
+                        class="user-input-field w-input"
+                        maxlength="256"
+                        name="Email"
+                        id="signUpEmail"
+                        placeholder="Enter your email"
+                        type="email"
+                        required
+                      />
+                    </div>
+                    <div class="input-field-wrapper">
+                      <label for="signUpPassword" class="user-form-label">Password</label>
+                      <input
+                        class="user-input-field w-input"
+                        maxlength="256"
+                        name="Password"
+                        id="signUpPassword"
+                        placeholder="Enter your password"
+                        type="password"
+                        required
+                      />
+                    </div>
+                    <div class="input-field-wrapper">
+                      <label for="signUpConfirmPassword" class="user-form-label">Confirm Password</label>
+                      <input
+                        class="user-input-field w-input"
+                        maxlength="256"
+                        name="ConfirmPassword"
+                        id="signUpConfirmPassword"
+                        placeholder="Confirm your password"
+                        type="password"
+                        required
+                      />
+                    </div>
+                    <div class="user-submit-button-wrapper">
+                      <input
+                        type="submit"
+                        data-wait="Please wait..."
+                        class="user-submit-button w-button"
+                        value="Sign Up Now"
+                      />
+                    </div>
+                  </div>
+                </form>
+                <div class="success-message w-form-done" id="signUpSuccess" style="display:none">
+                  <div>Thank you! Your submission has been received!</div>
+                </div>
+                <div class="error-message w-form-fail" id="signUpError" style="display:none">
+                  <div>Oops! Something went wrong while submitting the form.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<script is:inline>
+  (function () {
+    var tabSignIn = document.getElementById('tabSignIn');
+    var tabSignUp = document.getElementById('tabSignUp');
+    var paneSignIn = document.getElementById('paneSignIn');
+    var paneSignUp = document.getElementById('paneSignUp');
+
+    function activateTab(activeTab, inactiveTab, activePane, inactivePane) {
+      activeTab.classList.add('w--current');
+      inactiveTab.classList.remove('w--current');
+      activePane.classList.add('w--tab-active');
+      inactivePane.classList.remove('w--tab-active');
+    }
+
+    if (tabSignIn && tabSignUp && paneSignIn && paneSignUp) {
+      tabSignIn.addEventListener('click', function (e) {
+        e.preventDefault();
+        activateTab(tabSignIn, tabSignUp, paneSignIn, paneSignUp);
+      });
+      tabSignUp.addEventListener('click', function (e) {
+        e.preventDefault();
+        activateTab(tabSignUp, tabSignIn, paneSignUp, paneSignIn);
+      });
+    }
+
+    var signInForm = document.getElementById('wf-form-Sign-In-Form');
+    var signInSuccess = document.getElementById('signInSuccess');
+    if (signInForm && signInSuccess) {
+      signInForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        signInForm.style.display = 'none';
+        signInSuccess.style.display = 'block';
+      });
+    }
+
+    var signUpForm = document.getElementById('wf-form-Sign-Up-Form');
+    var signUpSuccess = document.getElementById('signUpSuccess');
+    if (signUpForm && signUpSuccess) {
+      signUpForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        signUpForm.style.display = 'none';
+        signUpSuccess.style.display = 'block';
+      });
+    }
+  })();
+</script>

@@ -1,0 +1,415 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Header from '@/components/layout/Header.astro';
+import Footer from '@/components/layout/Footer.astro';
+import CommonHero from '@/components/ui/CommonHero.astro';
+import ProductCard from '@/components/sections/ProductCard.astro';
+import { products, getBestSellers, getSaleProducts } from '@/data/products';
+import { categories } from '@/data/categories';
+import { features } from '@/data/features';
+
+const popularProducts = products.slice(0, 3);
+const bestSellers = getBestSellers().slice(0, 4);
+const saleProducts = getSaleProducts();
+const discountProducts = products.filter((p) => (p.discount ?? 0) > 0);
+---
+
+<BaseLayout title="Shop — Dojeen" description="Browse our full collection of sustainable fashion pieces.">
+  <Header variant="default" currentPath="/shop" />
+  <main class="main-wrapper">
+
+    <CommonHero subtitle="Explore our product" title="Our Product Collection" />
+
+    <section class="product-archive-section">
+      <div class="section-gap">
+        <div class="w-layout-blockcontainer container-default w-container">
+          <div class="product-wrapper-with-sidebar">
+
+            <!-- Sidebar -->
+            <div class="product-sidbar-main">
+              <!-- Mobile accordion toggle -->
+              <div class="product-sidebar-mobile-accordion">
+                <button class="product-filter" id="sidebarToggle" aria-expanded="false">
+                  <div class="product-sidebar-accordion-text">Filter</div>
+                  <img src="/images/accordion-arrow.svg" loading="lazy" alt="Filter Arrow" class="product-sidebar-accordion-arrow" />
+                </button>
+              </div>
+
+              <!-- Sidebar inner wrapper (collapsible on mobile) -->
+              <div class="product-sidebar-inner-wrapper" id="sidebarInner">
+                <div class="product-sidbar-wrapper">
+
+                  <!-- Product Type (Categories) -->
+                  <div class="product-sidebar-inner-block">
+                    <div class="product-sidebar-title-block">
+                      <h2 class="product-sidebar-title">Product Type</h2>
+                    </div>
+                    <div class="product-sidebar-category-wrapper">
+                      <div class="product-sidebar-category-list">
+                        <div class="product-sidebar-link-wrapper">
+                          <a href="#" class="prodcut-sidebar-category-link w-inline-block w--current" data-filter="all">
+                            <div class="prodcut-sidebar-category-name">All Products</div>
+                          </a>
+                        </div>
+                        {categories.map((cat) => (
+                          <div class="product-sidebar-link-wrapper">
+                            <a href="#" class="prodcut-sidebar-category-link w-inline-block" data-filter={cat.slug}>
+                              <div class="prodcut-sidebar-category-name">{cat.name}</div>
+                            </a>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Popular Products -->
+                  <div class="product-sidebar-inner-block">
+                    <div class="product-sidebar-title-block">
+                      <h2 class="product-sidebar-title">Popular Products</h2>
+                    </div>
+                    <div class="popuplar-product-wrapper">
+                      <div class="popular-product-list">
+                        {popularProducts.map((product) => (
+                          <div class="popular-product-item">
+                            <div class="popular-product-block">
+                              <a href={`/products/${product.slug}`} class="popular-product-thumbnail-block w-inline-block">
+                                <img loading="lazy" src={`/images/${product.thumbnail}`} alt={product.name} class="popular-product-thumbnail" />
+                              </a>
+                              <div class="popular-product-info-block">
+                                <a href={`/products/${product.slug}`} class="product-link-block w-inline-block">
+                                  <div class="product-name">{product.name}</div>
+                                </a>
+                                <div class="product-card-pricing-block">
+                                  <div class="product-card-sale-price">${product.price.toFixed(2)}</div>
+                                </div>
+                                <div class="product-card-star-rating-block">
+                                  <img loading="lazy" src="/images/star-full.svg" alt="Star Rating" class="popular-star-icon" />
+                                  <div class="product-star-rating-text">{product.rating.toFixed(1)}</div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Sidebar Banner -->
+                  <div class="product-sidebar-banner">
+                    <img src="/images/product-sidebar-banner-image.webp" loading="lazy" alt="Banner Image" class="product-sidebar-banner-image banner-image" />
+                    <div class="product-sidebar-banner-content-block">
+                      <h3 class="home-banner-title custom-width-1">New Dress Collections</h3>
+                      <a href="/shop/no-sidebar" class="banner-button w-inline-block">
+                        <div class="button-text-block">
+                          <div class="button-text">Shop Now</div>
+                        </div>
+                        <div class="button-bg"></div>
+                      </a>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+            <!-- Product Archive -->
+            <div class="product-archive-wrapper">
+
+              <!-- Sort bar -->
+              <div class="product-selector-form-block w-form">
+                <div class="selector-text">Sort by:</div>
+                <form class="product-selector-form" id="sortForm">
+                  <select id="sortSelect" class="product-select-input w-select">
+                    <option value="default">Best Selling</option>
+                    <option value="featured">Featured</option>
+                    <option value="price-high">Price, High to Low</option>
+                    <option value="price-low">Price, Low to High</option>
+                    <option value="az">Alphabetically, A-Z</option>
+                    <option value="za">Alphabetically, Z-A</option>
+                  </select>
+                </form>
+              </div>
+
+              <!-- Tabs: All / On Sale / Discounts -->
+              <div class="product-archive-tab w-tabs">
+                <div class="product-archive-tab-menu w-tab-menu">
+                  <button class="product-archive-tab-menu-link w-inline-block w-tab-link w--current" data-tab="all">All</button>
+                  <button class="product-archive-tab-menu-link w-inline-block w-tab-link" data-tab="sale">On Sale</button>
+                  <button class="product-archive-tab-menu-link w-inline-block w-tab-link" data-tab="discount">Discounts</button>
+                </div>
+                <div class="product-archive-tab-content w-tab-content">
+
+                  <!-- All Products -->
+                  <div class="product-archive-tab-pane w-tab-pane w--tab-active" data-tab-pane="all">
+                    <div class="product-collection-list w-dyn-list">
+                      <div role="list" class="product-archive-grid-two w-dyn-items" id="allGrid">
+                        {products.map((product) => (
+                          <div role="listitem" class="product-collection-item w-dyn-item reveal"
+                            data-category={product.categorySlug}
+                            data-price={product.price}
+                          >
+                            <div class="product-card-block">
+                              <ProductCard product={product} headingTag="h3" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- On Sale -->
+                  <div class="product-archive-tab-pane w-tab-pane" data-tab-pane="sale">
+                    <div class="product-collection-list w-dyn-list">
+                      <div role="list" class="product-archive-grid-two w-dyn-items">
+                        {saleProducts.map((product) => (
+                          <div role="listitem" class="product-collection-item w-dyn-item">
+                            <div class="product-card-block">
+                              <ProductCard product={product} headingTag="h3" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Discounts -->
+                  <div class="product-archive-tab-pane w-tab-pane" data-tab-pane="discount">
+                    <div class="product-collection-list w-dyn-list">
+                      <div role="list" class="product-archive-grid-two w-dyn-items">
+                        {discountProducts.map((product) => (
+                          <div role="listitem" class="product-collection-item w-dyn-item">
+                            <div class="product-card-block">
+                              <ProductCard product={product} headingTag="h3" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+      <div class="section-gap-bottom">
+        <div class="w-layout-blockcontainer container-default w-container">
+          <div class="features-wrapper" data-stagger>
+            {features.map((feature) => (
+              <div class="features-card-block reveal">
+                <img src={`/images/${feature.icon}`} loading="lazy" alt="Features Icon" class="features-icon" />
+                <div class="features-title">{feature.title}</div>
+                <div class="feature-text">{feature.text}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Timer Section -->
+    <section class="timer-section">
+      <div class="timer-main">
+        <div class="w-layout-blockcontainer container-default w-container">
+          <div class="timer-inner-wrapper">
+            <div class="timer-block">
+              <div class="timer-subtitle">Up to 25% Off Sale</div>
+              <div id="timer" class="timer-wrapper">
+                <div class="timer-inner-block">
+                  <div id="timer-days" class="timer-counter-text">00</div>
+                  <div class="timer-counter-title">Days</div>
+                </div>
+                <div class="timer-counter-separator">:</div>
+                <div class="timer-inner-block">
+                  <div id="timer-hours" class="timer-counter-text">00</div>
+                  <div class="timer-counter-title">Hours</div>
+                </div>
+                <div class="timer-counter-separator">:</div>
+                <div class="timer-inner-block">
+                  <div id="timer-minutes" class="timer-counter-text">00</div>
+                  <div class="timer-counter-title">Minutes</div>
+                </div>
+                <div class="timer-counter-separator">:</div>
+                <div class="timer-inner-block">
+                  <div id="timer-seconds" class="timer-counter-text">00</div>
+                  <div class="timer-counter-title">Seconds</div>
+                </div>
+              </div>
+            </div>
+            <div class="timer-separator-line"></div>
+            <div class="timer-content-block">
+              <h2 class="section-title text-color-white">Get Your Dress Look Today</h2>
+              <p class="timer-excerpt">We checked out a bunch of stores and finally found the perfect dress!</p>
+              <div class="button-wrapper center">
+                <a href="/shop" class="secondary-button w-inline-block">
+                  <div class="button-text-block">
+                    <div class="button-text">Shop The Sale</div>
+                  </div>
+                  <div class="button-bg secondary"></div>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Best Sellers Section -->
+    <section class="best-seller-section">
+      <div class="section-gap">
+        <div class="w-layout-blockcontainer container-default w-container">
+          <div class="best-seller-main">
+            <div class="best-seller-wrapper">
+              <div class="best-seller-banner-wrapper">
+                <div class="best-seller-banner-content-block">
+                  <div class="best-seller-subtitle">Our Best Sellers</div>
+                  <h2 class="best-seller-banner-title">-20% Off for Bestsellers Product</h2>
+                  <p class="best-seller-excerpt">Update your wardrobe with our most loved pieces. Simple cuts, premium fabrics, and timeless elegance.</p>
+                  <a href="/shop/no-sidebar" class="primary-button w-inline-block">
+                    <div class="button-text-block">
+                      <div class="button-text">Shop Now</div>
+                    </div>
+                    <div class="button-bg"></div>
+                  </a>
+                </div>
+                <div class="best-seller-image-block">
+                  <img src="/images/best-seller-image-1.webp" loading="lazy" alt="Best Seller Banner Image" class="best-seller-bg-image home-banner-image" />
+                </div>
+              </div>
+              <div class="best-seller-collection-list w-dyn-list">
+                <div role="list" class="best-seller-collection-grid w-dyn-items">
+                  {bestSellers.map((product) => (
+                    <div role="listitem" class="product-collection-item w-dyn-item">
+                      <div class="product-card-block">
+                        <ProductCard product={product} headingTag="h3" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+  <Footer />
+</BaseLayout>
+
+<script is:inline>
+  /* ── Tab switching ── */
+  (function () {
+    var tabLinks = document.querySelectorAll('.product-archive-tab-menu-link');
+    var tabPanes = document.querySelectorAll('.product-archive-tab-pane');
+
+    tabLinks.forEach(function (link) {
+      link.addEventListener('click', function () {
+        var target = link.getAttribute('data-tab');
+        tabLinks.forEach(function (l) { l.classList.remove('w--current'); });
+        tabPanes.forEach(function (p) { p.classList.remove('w--tab-active'); });
+        link.classList.add('w--current');
+        var pane = document.querySelector('.product-archive-tab-pane[data-tab-pane="' + target + '"]');
+        if (pane) pane.classList.add('w--tab-active');
+      });
+    });
+  })();
+
+  /* ── Sidebar category filter (All tab only) ── */
+  (function () {
+    var categoryLinks = document.querySelectorAll('.prodcut-sidebar-category-link');
+    var allGrid = document.getElementById('allGrid');
+
+    categoryLinks.forEach(function (link) {
+      link.addEventListener('click', function (e) {
+        e.preventDefault();
+        var filter = link.getAttribute('data-filter');
+        categoryLinks.forEach(function (l) { l.classList.remove('w--current'); });
+        link.classList.add('w--current');
+        if (!allGrid) return;
+        var items = allGrid.querySelectorAll('.product-collection-item');
+        items.forEach(function (item) {
+          var cat = item.getAttribute('data-category');
+          item.style.display = (filter === 'all' || cat === filter) ? '' : 'none';
+        });
+      });
+    });
+  })();
+
+  /* ── Sort (All tab) ── */
+  (function () {
+    var sortSelect = document.getElementById('sortSelect');
+    var allGrid = document.getElementById('allGrid');
+    if (!sortSelect || !allGrid) return;
+
+    sortSelect.addEventListener('change', function () {
+      var val = sortSelect.value;
+      var items = Array.from(allGrid.querySelectorAll('.product-collection-item'));
+      items.sort(function (a, b) {
+        var pa = parseFloat(a.getAttribute('data-price') || '0');
+        var pb = parseFloat(b.getAttribute('data-price') || '0');
+        var na = a.querySelector('.product-name') ? a.querySelector('.product-name').textContent.trim() : '';
+        var nb = b.querySelector('.product-name') ? b.querySelector('.product-name').textContent.trim() : '';
+        if (val === 'price-high') return pb - pa;
+        if (val === 'price-low') return pa - pb;
+        if (val === 'az') return na.localeCompare(nb);
+        if (val === 'za') return nb.localeCompare(na);
+        return 0;
+      });
+      items.forEach(function (item) { allGrid.appendChild(item); });
+    });
+  })();
+
+  /* ── Mobile sidebar accordion ── */
+  (function () {
+    var toggle = document.getElementById('sidebarToggle');
+    var inner = document.getElementById('sidebarInner');
+    if (!toggle || !inner) return;
+
+    /* On desktop the sidebar is always visible */
+    function isMobile() { return window.innerWidth <= 991; }
+
+    function applyState() {
+      if (!isMobile()) {
+        inner.style.height = '';
+        inner.style.overflow = '';
+        return;
+      }
+      var open = toggle.getAttribute('aria-expanded') === 'true';
+      inner.style.height = open ? inner.scrollHeight + 'px' : '0px';
+      inner.style.overflow = 'hidden';
+    }
+
+    toggle.addEventListener('click', function () {
+      var open = toggle.getAttribute('aria-expanded') === 'true';
+      toggle.setAttribute('aria-expanded', open ? 'false' : 'true');
+      applyState();
+    });
+
+    window.addEventListener('resize', applyState);
+    applyState();
+  })();
+
+  /* ── Countdown timer ── */
+  (function () {
+    var end = new Date('2026-07-09T00:00:00').getTime();
+    function tick() {
+      var diff = end - Date.now();
+      var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+      var d = diff > 0 ? Math.floor(diff / 86400000) : 0;
+      var h = diff > 0 ? Math.floor(diff % 86400000 / 3600000) : 0;
+      var m = diff > 0 ? Math.floor(diff % 3600000 / 60000) : 0;
+      var s = diff > 0 ? Math.floor(diff % 60000 / 1000) : 0;
+      ['timer-days', 'timer-hours', 'timer-minutes', 'timer-seconds'].forEach(function (id, i) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = pad([d, h, m, s][i]);
+      });
+    }
+    tick(); setInterval(tick, 1000);
+  })();
+</script>

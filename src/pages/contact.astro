@@ -1,0 +1,295 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Header from '@/components/layout/Header.astro';
+import Footer from '@/components/layout/Footer.astro';
+---
+
+<BaseLayout title="Contact Us — Dojeen" description="Get in touch with the Dojeen team. We'd love to hear from you.">
+  <Header variant="default" currentPath="/contact" />
+  <main class="main-wrapper">
+
+    <!-- Breadcrumb -->
+    <section class="breadcrumb-section">
+      <div class="w-layout-blockcontainer container-default w-container">
+        <div class="breadcrumb-block">
+          <img src="/images/breadcrumb-icon.svg" loading="lazy" alt="Breadcrumb Icon" class="breadcrumb-icon" />
+          <div class="breadcrumb-text-wrapper">
+            <a href="/" class="breadcrumb-text-link">Home</a>
+            <div class="breadcrumb-separator"></div>
+            <div class="breadcrumb-text">Contact</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact Form + Image Section -->
+    <section class="contact-section">
+      <div class="section-gap-bottom">
+        <div class="w-layout-blockcontainer container-default w-container">
+          <div class="contact-wrapper">
+
+            <!-- Left: Form -->
+            <div class="contact-form-block w-form">
+              <div class="section-title-block center">
+                <h1 class="section-title reveal">Get in Touch</h1>
+                <p class="section-excerpt contact reveal">Have questions, or ideas here to help you explore the world of Your shopping.</p>
+              </div>
+              <form id="contactForm" name="Contact-Form" class="contact-form">
+                <div class="home-contact-form-wrapper">
+                  <div class="input-field-wrapper">
+                    <input class="input-field w-input" maxlength="256" name="Full-Name" placeholder="Full Name" type="text" />
+                  </div>
+                  <div class="input-field-wrapper">
+                    <input class="input-field w-input" maxlength="256" name="Phone-Number" placeholder="Phone Number" type="tel" />
+                  </div>
+                  <div class="input-field-wrapper">
+                    <input class="input-field w-input" maxlength="256" name="Email-Address" placeholder="Email Address" type="email" required />
+                  </div>
+                  <div class="input-field-wrapper">
+                    <input class="input-field w-input" maxlength="256" name="Subject" placeholder="Subject" type="text" />
+                  </div>
+                  <div class="input-field-wrapper contact-full-width">
+                    <textarea name="Message" maxlength="5000" placeholder="How Can We Help You?" class="input-field text-area w-input"></textarea>
+                  </div>
+                  <div class="submit-button-wrapper contact-full-width">
+                    <input type="submit" class="submit-button w-button" value="Send Message" />
+                  </div>
+                </div>
+              </form>
+              <div class="success-message w-form-done" id="contactSuccess" style="display:none">
+                <div>Thank you! Your submission has been received!</div>
+              </div>
+            </div>
+
+            <!-- Right: Image -->
+            <div class="contact-form-image-block">
+              <img
+                src="/images/contact-form-image.webp"
+                loading="lazy"
+                sizes="(max-width: 767px) 100vw, (max-width: 991px) 727.984375px, 939.984375px"
+                srcset="/images/contact-form-image-p-500.webp 500w, /images/contact-form-image-p-800.webp 800w, /images/contact-form-image-p-1080.webp 1080w, /images/contact-form-image.webp 1400w"
+                alt="Contact Form Image"
+                class="contact-form-image"
+              />
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact Info + Location Slider Section -->
+    <section class="contact-info-section">
+      <div class="section-gap-bottom">
+        <div class="w-layout-blockcontainer container-default w-container">
+          <div class="contact-info-wrapper">
+
+            <!-- Info Cards -->
+            <div class="contact-info-inner-wrapper" data-stagger>
+              <div class="contact-info-card-block reveal">
+                <div class="section-subtitle">Address</div>
+                <p class="contact-info-text">125, Heron Tower, Ground Station Bishopsgate, UK</p>
+              </div>
+              <div class="contact-info-card-block reveal">
+                <div class="section-subtitle">Email</div>
+                <a href="mailto:hello@example.com?subject=Contact" class="contact-info-text-link">hello@example.com</a>
+                <a href="mailto:support@example.com?subject=Contact" class="contact-info-text-link">support@example.com</a>
+              </div>
+              <div class="contact-info-card-block reveal">
+                <div class="section-subtitle">Phone</div>
+                <a href="tel:+0123456789" class="contact-info-text-link">+012 345 6789</a>
+                <a href="tel:+9876543210" class="contact-info-text-link">+987 654 3210</a>
+              </div>
+            </div>
+
+            <!-- Location Slider -->
+            <div class="contact-location-wrapper">
+              <div class="location-slider" id="locationSlider">
+                <div class="locarion-section-title">
+                  <h2 class="section-title reveal">Visit Our Store</h2>
+                </div>
+                <div class="location-slider-mask">
+                  <div class="location-slider-track" id="locationSliderTrack">
+
+                    <!-- Slide 1 -->
+                    <div class="location-slider-item">
+                      <div class="location-block">
+                        <div class="location-content-block">
+                          <h3 class="location-title">Princes Street</h3>
+                          <div class="location-info-block">
+                            <p class="contact-info-text">The Balmoral Hotel, 1 Princes Street Edinburgh</p>
+                            <a href="mailto:hello@example.com?subject=Contact" class="contact-info-text-link">hello@example.com</a>
+                            <a href="tel:+0123456789" class="contact-info-text-link">+012 345 6789</a>
+                          </div>
+                          <div class="button-wrapper">
+                            <a href="https://maps.google.com/" target="_blank" rel="noopener" class="primary-button w-inline-block">
+                              <div class="button-text-block">
+                                <div class="button-text">Visit Store</div>
+                              </div>
+                              <div class="button-bg"></div>
+                            </a>
+                          </div>
+                        </div>
+                        <div class="location-image-block">
+                          <img src="/images/location-image-1.webp" loading="lazy" sizes="(max-width: 767px) 100vw, (max-width: 991px) 727.984375px, 939.984375px" srcset="/images/location-image-1-p-500.webp 500w, /images/location-image-1-p-800.webp 800w, /images/location-image-1.webp 1078w" alt="Location Image" class="location-image" />
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Slide 2 -->
+                    <div class="location-slider-item">
+                      <div class="location-block">
+                        <div class="location-content-block">
+                          <h3 class="location-title">George Street</h3>
+                          <div class="location-info-block">
+                            <p class="contact-info-text">The Caledonian Hotel, 5 George Street, Edinburgh</p>
+                            <a href="mailto:hello@example.com?subject=Contact" class="contact-info-text-link">hello@example.com</a>
+                            <a href="tel:+0123456789" class="contact-info-text-link">+012 345 6789</a>
+                          </div>
+                          <div class="button-wrapper">
+                            <a href="https://maps.google.com/" target="_blank" rel="noopener" class="primary-button w-inline-block">
+                              <div class="button-text-block">
+                                <div class="button-text">Visit Store</div>
+                              </div>
+                              <div class="button-bg"></div>
+                            </a>
+                          </div>
+                        </div>
+                        <div class="location-image-block">
+                          <img src="/images/location-image-2.webp" loading="lazy" sizes="(max-width: 767px) 100vw, (max-width: 991px) 727.984375px, 939.984375px" srcset="/images/location-image-2-p-500.webp 500w, /images/location-image-2-p-800.webp 800w, /images/location-image-2.webp 1078w" alt="Location Image" class="location-image" />
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Slide 3 -->
+                    <div class="location-slider-item">
+                      <div class="location-block">
+                        <div class="location-content-block">
+                          <h3 class="location-title">Queen's Road</h3>
+                          <div class="location-info-block">
+                            <p class="contact-info-text">The Carlton Suites, 14 Queen's Road, Edinburgh</p>
+                            <a href="mailto:hello@example.com?subject=Contact" class="contact-info-text-link">hello@example.com</a>
+                            <a href="tel:+0123456789" class="contact-info-text-link">+012 345 6789</a>
+                          </div>
+                          <div class="button-wrapper">
+                            <a href="https://maps.google.com/" target="_blank" rel="noopener" class="primary-button w-inline-block">
+                              <div class="button-text-block">
+                                <div class="button-text">Visit Store</div>
+                              </div>
+                              <div class="button-bg"></div>
+                            </a>
+                          </div>
+                        </div>
+                        <div class="location-image-block">
+                          <img src="/images/location-image-3.webp" loading="lazy" sizes="(max-width: 767px) 100vw, (max-width: 991px) 727.984375px, 939.984375px" srcset="/images/location-image-3-p-500.webp 500w, /images/location-image-3-p-800.webp 800w, /images/location-image-3.webp 1078w" alt="Location Image" class="location-image" />
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+                <!-- Arrows -->
+                <div class="location-slider-arrow left" id="locationPrev" role="button" aria-label="Previous slide">
+                  <div class="location-slider-arrow-icon w-icon-slider-left"></div>
+                </div>
+                <div class="location-slider-arrow right" id="locationNext" role="button" aria-label="Next slide">
+                  <div class="location-slider-arrow-icon w-icon-slider-right"></div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+  <Footer />
+</BaseLayout>
+
+<style is:global>
+  /* Span message + submit full width in 2-col form grid */
+  .contact-full-width {
+    grid-column: 1 / -1;
+  }
+
+  /* ── Location slider ── */
+  .location-slider-mask {
+    overflow: hidden;
+    width: 100%;
+  }
+  .location-slider-track {
+    display: flex;
+    transition: transform 0.5s ease;
+    will-change: transform;
+  }
+  /* flex: 0 0 100% gives each slide exactly the mask width;
+     max-width + overflow:hidden prevent internal grids from blowing it out */
+  .location-slider-item {
+    flex: 0 0 100%;
+    max-width: 100%;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  /* Arrow positioning + centering */
+  .location-slider { position: relative; }
+  .location-slider-arrow {
+    position: absolute;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  /* Scoped chevron characters so other sliders' ← → aren't changed */
+  .location-slider-arrow-icon.w-icon-slider-left::before  { content: '‹'; font-size: 22px; line-height: 1; }
+  .location-slider-arrow-icon.w-icon-slider-right::before { content: '›'; font-size: 22px; line-height: 1; }
+
+  /* minmax(0, fr) disables the implicit auto-minimum on grid tracks so the
+     image's 1078px intrinsic width doesn't push columns beyond their FR share */
+  .location-block {
+    min-height: 380px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr) !important;
+  }
+  .location-content-block { min-width: 0; overflow: hidden; }
+  .location-image-block   { min-width: 0; overflow: hidden; }
+  .location-image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    /* ── Contact form submit ── */
+    var form = document.getElementById('contactForm');
+    var success = document.getElementById('contactSuccess');
+    if (form && success) {
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        form.style.display = 'none';
+        success.style.display = 'block';
+      });
+    }
+
+    /* ── Location slider ── */
+    var track = document.getElementById('locationSliderTrack');
+    var prev  = document.getElementById('locationPrev');
+    var next  = document.getElementById('locationNext');
+    if (!track || !prev || !next) return;
+
+    var slides = track.querySelectorAll('.location-slider-item');
+    var total  = slides.length;
+    var idx    = 0;
+
+    function goTo(n) {
+      idx = (n + total) % total;
+      track.style.transform = 'translateX(-' + (idx * 100) + '%)';
+    }
+
+    prev.addEventListener('click', function () { goTo(idx - 1); });
+    next.addEventListener('click', function () { goTo(idx + 1); });
+  })();
+</script>

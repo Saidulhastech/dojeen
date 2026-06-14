@@ -1,0 +1,405 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Header from '@/components/layout/Header.astro';
+import Footer from '@/components/layout/Footer.astro';
+import CommonHero from '@/components/ui/CommonHero.astro';
+import BlogCard from '@/components/sections/BlogCard.astro';
+import { features } from '@/data/features';
+import { partners } from '@/data/partners';
+import { posts } from '@/data/blog';
+
+const recentPosts = posts.slice(0, 3);
+
+const storyCards = [
+  { image: 'our-story-image-1.webp', year: '1995' },
+  { image: 'our-story-image-2.webp', year: '2000' },
+  { image: 'our-story-image-3.webp', year: '2010' },
+  { image: 'our-story-image-4.webp', year: '2015' },
+  { image: 'our-story-image-5.webp', year: '2025' },
+];
+
+const galleryImages = [
+  'gallery-image-1.webp',
+  'gallery-image-2.webp',
+  'gallery-image-3.webp',
+  'gallery-image-4.webp',
+  'gallery-image-5.webp',
+  'gallery-image-6.webp',
+];
+---
+
+<BaseLayout
+  title="About Us — Dojeen"
+  description="About our eCommerce fashion brand. Discover a stunning collection of chic, artisanal dresses that promise both style and quality."
+>
+  <Header variant="default" currentPath="/about" />
+  <main class="main-wrapper">
+
+    <CommonHero
+      subtitle="About Us"
+      title="About Our eCommerce Fashion Brand"
+      bgVariant="one"
+      titleBlockClass="about"
+    />
+
+    <!-- Why Choose Us Section -->
+    <section class="why-choose-us-section">
+      <div class="section-gap">
+        <div class="w-layout-blockcontainer container-default w-container">
+          <div class="why-choose-us-wrapper">
+            <div class="why-choose-us-title-block">
+              <h2 class="why-choose-us-title">Discover a Stunning Collection of Chic, Artisanal Dresses That Promise Both Style and Quality. Elevate Your Wardrobe With Pieces You Can Truly Rely on!</h2>
+            </div>
+            <div class="why-choose-us-grid" data-stagger>
+              <div class="why-choose-us-card-block reveal">
+                <div class="why-choose-us-icon-block">
+                  <img src="/images/why-choose-us-1_1.svg" loading="lazy" alt="Why Choose Us Icon" class="why-choose-us-icon" />
+                </div>
+                <h3 class="why-choose-us-card-title">Ethically Made</h3>
+                <p class="why-choose-us-card-text">Checked out workshops that pay fairly and keep hours chill.</p>
+              </div>
+              <div class="why-choose-us-card-block reveal">
+                <div class="why-choose-us-icon-block">
+                  <img src="/images/why-choose-us-2_1.svg" loading="lazy" alt="Why Choose Us Icon" class="why-choose-us-icon" />
+                </div>
+                <h3 class="why-choose-us-card-title">Sustainable Materials</h3>
+                <p class="why-choose-us-card-text">We use organic cotton and recycled fabrics that are sourced responsibly.</p>
+              </div>
+              <div class="why-choose-us-card-block reveal">
+                <div class="why-choose-us-icon-block">
+                  <img src="/images/why-choose-us-3_1.svg" loading="lazy" alt="Why Choose Us Icon" class="why-choose-us-icon" />
+                </div>
+                <h3 class="why-choose-us-card-title">Circular Design</h3>
+                <p class="why-choose-us-card-text">Made to stick around, fix up, and eventually go back to nature.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- About Intro Section -->
+    <section class="about-intro-section">
+      <div class="section-gap-bottom">
+        <div class="w-layout-blockcontainer container-default w-container">
+          <div class="about-intro-wrapper">
+
+            <!-- Video -->
+            <div class="about-intro-video-block">
+              <div class="about-intro-video w-background-video w-background-video-atom">
+                <video
+                  id="about-intro-video"
+                  autoplay
+                  loop
+                  muted
+                  playsinline
+                  style="background-image:url('/videos/about-intro-video-poster-00001.jpg')"
+                >
+                  <source src="/videos/about-intro-video-transcode.mp4" />
+                  <source src="/videos/about-intro-video-transcode.webm" />
+                </video>
+                <div aria-live="polite">
+                  <button
+                    type="button"
+                    id="aboutVideoPause"
+                    aria-controls="about-intro-video"
+                    class="play-pause-button-2 w-background-video--control"
+                  >
+                    <span id="aboutPauseIcon">
+                      <img src="/images/Pause-video.svg" loading="lazy" alt="Pause video" class="play-pause-icon" />
+                    </span>
+                    <span id="aboutPlayIcon" hidden="">
+                      <img src="/images/Play-video.svg" loading="lazy" alt="Play video" class="play-pause-icon" />
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Content block 1 -->
+            <div class="about-intro-content-block">
+              <h2 class="section-title reveal">Quality Artisanal Dresses You Can Trust.</h2>
+              <p class="about-intro-text reveal">Welcome to Style Haven, your ultimate destination for the latest fashion trends and timeless wardrobe essentials! Whether you're looking for chic casual wear, elegant formal attire, or statement accessories, we have something to suit every style and occasion.</p>
+              <div class="button-wrapper reveal">
+                <a href="/shop/no-sidebar" class="primary-button w-inline-block">
+                  <div class="button-text-block">
+                    <div class="button-text">Explore Products</div>
+                  </div>
+                  <div class="button-bg"></div>
+                </a>
+              </div>
+            </div>
+
+            <!-- Content block 2 -->
+            <div class="about-intro-content-block">
+              <h2 class="section-title reveal">Each Drop Shows Our Customer Needs.</h2>
+              <p class="about-intro-text reveal">Welcome to Style Haven, your ultimate destination for the latest fashion trends and timeless wardrobe essentials! Whether you're looking for chic casual wear, elegant formal attire, or statement accessories</p>
+              <div class="button-wrapper reveal">
+                <a href="/shop/no-sidebar" class="primary-button w-inline-block">
+                  <div class="button-text-block">
+                    <div class="button-text">Explore Products</div>
+                  </div>
+                  <div class="button-bg"></div>
+                </a>
+              </div>
+            </div>
+
+            <!-- Intro Image -->
+            <div class="about-intro-image-block">
+              <img
+                src="/images/about-intro-image.webp"
+                loading="lazy"
+                sizes="(max-width: 767px) 100vw, (max-width: 991px) 727.96875px, 939.96875px"
+                srcset="/images/about-intro-image-p-500.webp 500w, /images/about-intro-image-p-800.webp 800w, /images/about-intro-image-p-1080.webp 1080w, /images/about-intro-image.webp 1440w"
+                alt="About Intro Image"
+                class="about-intro-image"
+              />
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Our Story Section -->
+    <section class="our-story-section">
+      <div class="section-gap-bottom">
+        <div class="w-layout-blockcontainer container-default w-container">
+          <div class="section-title-wrapper">
+            <div class="section-title-inner">
+              <div class="section-subtitle reveal">Our story</div>
+              <h2 class="section-title reveal">Dojeen's Journey as a Thriving Fashion Brand.</h2>
+            </div>
+            <p class="section-excerpt reveal">Welcome to Style Haven, your ultimate destination for the latest fashion trends and timeless wardrobe essentials! Whether you're looking for chic casual wear, elegant formal attire, or statement accessories, we have something to suit every style and occasion. Our carefully curated collection features high-quality fabrics.</p>
+          </div>
+          <div class="our-story-marquee" id="ourStoryMarquee">
+            {[0, 1, 2].map(() => (
+              <div class="our-story-marquee-inner">
+                {storyCards.map((card) => (
+                  <div class="our-story-card-block">
+                    <img
+                      src={`/images/${card.image}`}
+                      loading="lazy"
+                      sizes="(max-width: 767px) 100vw, (max-width: 991px) 727.984375px, 940px"
+                      srcset={`/images/${card.image.replace('.webp', '-p-500.webp')} 500w, /images/${card.image.replace('.webp', '-p-800.webp')} 800w, /images/${card.image.replace('.webp', '-p-1080.webp')} 1080w, /images/${card.image} 1410w`}
+                      alt="Our Story Image"
+                      class="our-story-image"
+                    />
+                    <div class="our-story-year">{card.year}</div>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div class="our-story-side-overlay"></div>
+    </section>
+
+    <!-- Partner Section -->
+    <section class="partner-section">
+      <div class="section-gap-bottom">
+        <div class="w-layout-blockcontainer container-default w-container">
+          <div class="partner-slider-wrapper">
+            <div id="partnerSlider" class="partner-slider w-slider">
+              <div class="partner-slider-mask w-slider-mask">
+                {partners.map((partner, idx) => (
+                  <div class={`partner-slider-item w-slide${idx === 0 ? ' is-active' : ''}`}>
+                    <div class="partner-content-wrapper">
+                      <div class="partner-content-block">
+                        <h2 class="partner-title">{partner.title}</h2>
+                        <p class="partner-details">{partner.description}</p>
+                      </div>
+                      <div class="partner-logo-wrapper">
+                        {partner.logos.map((logo, logoIdx) => (
+                          <img
+                            src={`/images/${logo}`}
+                            loading="lazy"
+                            alt="Partner Logo"
+                            class={`partner-logo${logoIdx === partner.activeLogo ? ' active' : ''}`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div id="partnerPrev" class="partner-slider-arrow left w-slider-arrow-left">
+                <div class="partner-slider-icon w-icon-slider-left"></div>
+              </div>
+              <div id="partnerNext" class="partner-slider-arrow right w-slider-arrow-right">
+                <div class="partner-slider-icon w-icon-slider-right"></div>
+              </div>
+              <div class="hidden-slider-nav w-slider-nav w-round w-num"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Blog Section -->
+    <section class="blog-section">
+      <div class="section-gap-bottom">
+        <div class="w-layout-blockcontainer container-default w-container">
+          <div class="section-title-block center">
+            <div class="section-title-inner blog">
+              <div class="section-subtitle reveal">Recent Blog</div>
+              <h2 class="section-title reveal">Latest Fashion Trends You Can't Miss Today</h2>
+            </div>
+          </div>
+          <div class="blog-list-wrapper w-dyn-list">
+            <div role="list" class="blog-list w-dyn-items" data-stagger>
+              {recentPosts.map((post) => (
+                <div role="listitem" class="blog-list-item w-dyn-item reveal">
+                  <BlogCard post={post} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Gallery Section -->
+    <section class="gallery-section">
+      <div class="section-gap-bottom">
+        <div class="gallery-main">
+          <div class="gallery-wrapper" id="galleryWrapper">
+            {[0, 1, 2].map(() => (
+              <div class="gallery-inner-block">
+                {galleryImages.map((img) => (
+                  <img
+                    src={`/images/${img}`}
+                    loading="lazy"
+                    sizes="(max-width: 1251px) 100vw, 1251px"
+                    srcset={`/images/${img.replace('.webp', '-p-500.webp')} 500w, /images/${img.replace('.webp', '-p-800.webp')} 800w, /images/${img.replace('.webp', '-p-1080.webp')} 1080w, /images/${img} 1251w`}
+                    alt="Gallery Image Alt Text"
+                    class="gallery-image"
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
+          <div class="gallery-content-block">
+            <h2 class="section-title text-color-white">@dojeen</h2>
+            <div class="gallery-excerpt">Fashion Product On Our Online Store.</div>
+            <a href="/shop/no-sidebar" class="text-link">Shop Collection</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+      <div class="section-gap-bottom">
+        <div class="w-layout-blockcontainer container-default w-container">
+          <div class="features-wrapper" data-stagger>
+            {features.map((feature) => (
+              <div class="features-card-block reveal">
+                <img src={`/images/${feature.icon}`} loading="lazy" alt="Features Icon" class="features-icon" />
+                <div class="features-title">{feature.title}</div>
+                <div class="feature-text">{feature.text}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+  <Footer />
+</BaseLayout>
+
+<script is:inline>
+  /* ── About video play/pause ── */
+  (function () {
+    var btn = document.getElementById('aboutVideoPause');
+    if (!btn) return;
+    var video = document.getElementById('about-intro-video');
+    var pauseIcon = document.getElementById('aboutPauseIcon');
+    var playIcon = document.getElementById('aboutPlayIcon');
+    if (!video || !pauseIcon || !playIcon) return;
+    btn.addEventListener('click', function () {
+      if (video.paused) {
+        video.play();
+        pauseIcon.removeAttribute('hidden');
+        playIcon.setAttribute('hidden', '');
+      } else {
+        video.pause();
+        pauseIcon.setAttribute('hidden', '');
+        playIcon.removeAttribute('hidden');
+      }
+    });
+  })();
+
+  /* ── Our Story marquee (continuous RAF-based horizontal translateX scroll) ── */
+  (function () {
+    var marquee = document.getElementById('ourStoryMarquee');
+    if (!marquee) return;
+    var inners = Array.from(marquee.querySelectorAll('.our-story-marquee-inner'));
+    if (!inners.length) return;
+    var pos = 0;
+    var speed = 0.5;
+    var totalW = 0;
+    function getWidth() {
+      totalW = inners[0].scrollWidth;
+    }
+    getWidth();
+    window.addEventListener('resize', getWidth);
+    function tick() {
+      pos -= speed;
+      if (Math.abs(pos) >= totalW) pos = 0;
+      inners.forEach(function (inner) {
+        inner.style.transform = 'translateX(' + pos + 'px)';
+      });
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  })();
+
+  /* ── Gallery marquee (continuous RAF-based horizontal translateX scroll) ── */
+  (function () {
+    var wrapper = document.getElementById('galleryWrapper');
+    if (!wrapper) return;
+    var inners = Array.from(wrapper.querySelectorAll('.gallery-inner-block'));
+    if (!inners.length) return;
+    var pos = 0;
+    var speed = 0.6;
+    var totalW = 0;
+    function getWidth() {
+      totalW = inners[0].scrollWidth;
+    }
+    getWidth();
+    window.addEventListener('resize', getWidth);
+    function tick() {
+      pos -= speed;
+      if (Math.abs(pos) >= totalW) pos = 0;
+      inners.forEach(function (inner) {
+        inner.style.transform = 'translateX(' + pos + 'px)';
+      });
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  })();
+
+  /* ── Partner slider (crossfade via is-active class toggling) ── */
+  (function () {
+    var slider = document.getElementById('partnerSlider');
+    if (!slider) return;
+    var slides = Array.from(slider.querySelectorAll('.partner-slider-mask .w-slide'));
+    if (!slides.length) return;
+    var cur = 0;
+    var total = slides.length;
+    function go(idx) {
+      var next = ((idx % total) + total) % total;
+      slides[cur].classList.remove('is-active');
+      cur = next;
+      slides[cur].classList.add('is-active');
+    }
+    var prev = document.getElementById('partnerPrev');
+    var next = document.getElementById('partnerNext');
+    if (prev) prev.addEventListener('click', function () { go(cur - 1); });
+    if (next) next.addEventListener('click', function () { go(cur + 1); });
+    setInterval(function () { go(cur + 1); }, 4000);
+  })();
+</script>

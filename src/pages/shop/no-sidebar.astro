@@ -1,0 +1,255 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Header from '@/components/layout/Header.astro';
+import Footer from '@/components/layout/Footer.astro';
+import CommonHero from '@/components/ui/CommonHero.astro';
+import ProductCard from '@/components/sections/ProductCard.astro';
+import { products, getBestSellers } from '@/data/products';
+import { features } from '@/data/features';
+
+const bestSellers = getBestSellers().slice(0, 4);
+
+const tabs = [
+  { label: 'All',           key: 'all',     slug: '' },
+  { label: 'Summer Tops',   key: 'tops',    slug: 'tops' },
+  { label: 'Denim Jackets', key: 'jackets', slug: 'jackets' },
+  { label: 'Smart Casual',  key: 'trousers',slug: 'trousers' },
+];
+---
+
+<BaseLayout title="Shop Without Sidebar — Dojeen" description="Browse our complete fashion collection.">
+  <Header variant="default" currentPath="/shop/no-sidebar" />
+  <main class="main-wrapper">
+
+    <CommonHero subtitle="Explore our product" title="Our Product Collection" bgVariant="two" center={true} />
+
+    <section class="product-archive-section">
+      <div class="section-gap">
+        <div class="w-layout-blockcontainer container-default w-container">
+          <div class="product-archive-wrapper">
+
+            <!-- Sort bar -->
+            <div class="product-selector-form-block w-form">
+              <div class="selector-text">Sort by:</div>
+              <form class="product-selector-form" id="sortForm">
+                <select id="sortSelect" class="product-select-input w-select">
+                  <option value="default">Best Selling</option>
+                  <option value="featured">Featured</option>
+                  <option value="price-high">Price, High to Low</option>
+                  <option value="price-low">Price, Low to High</option>
+                  <option value="az">Alphabetically, A-Z</option>
+                  <option value="za">Alphabetically, Z-A</option>
+                  <option value="date-old">Date, Old to New</option>
+                  <option value="date-new">Date, New to Old</option>
+                </select>
+              </form>
+            </div>
+
+            <!-- Tabs -->
+            <div class="product-archive-tab w-tabs">
+              <div class="product-archive-tab-menu w-tab-menu">
+                {tabs.map((tab, i) => (
+                  <button class={`product-archive-tab-menu-link w-inline-block w-tab-link${i === 0 ? ' w--current' : ''}`} data-tab={tab.key}>
+                    <div>{tab.label}</div>
+                  </button>
+                ))}
+              </div>
+              <div class="product-archive-tab-content w-tab-content">
+                {tabs.map((tab, i) => {
+                  const tabProducts = tab.slug
+                    ? products.filter((p) => p.categorySlug === tab.slug)
+                    : products;
+                  return (
+                    <div class={`product-archive-tab-pane w-tab-pane${i === 0 ? ' w--tab-active' : ''}`} data-tab-pane={tab.key}>
+                      <div class="product-collection-list w-dyn-list">
+                        <div role="list" class="product-archive-grid-one w-dyn-items" id={i === 0 ? 'mainGrid' : undefined}>
+                          {tabProducts.map((product) => (
+                            <div role="listitem" class="product-collection-item w-dyn-item reveal"
+                              data-price={product.price}
+                              data-name={product.name}
+                            >
+                              <div class="product-card-block">
+                                <ProductCard product={product} headingTag="h3" />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+      <div class="section-gap-bottom">
+        <div class="w-layout-blockcontainer container-default w-container">
+          <div class="features-wrapper" data-stagger>
+            {features.map((feature) => (
+              <div class="features-card-block reveal">
+                <img src={`/images/${feature.icon}`} loading="lazy" alt="Features Icon" class="features-icon" />
+                <div class="features-title">{feature.title}</div>
+                <div class="feature-text">{feature.text}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Timer Section -->
+    <section class="timer-section">
+      <div class="timer-main">
+        <div class="w-layout-blockcontainer container-default w-container">
+          <div class="timer-inner-wrapper">
+            <div class="timer-block">
+              <div class="timer-subtitle">Up to 25% Off Sale</div>
+              <div id="timer" class="timer-wrapper">
+                <div class="timer-inner-block">
+                  <div id="timer-days" class="timer-counter-text">00</div>
+                  <div class="timer-counter-title">Days</div>
+                </div>
+                <div class="timer-counter-separator">:</div>
+                <div class="timer-inner-block">
+                  <div id="timer-hours" class="timer-counter-text">00</div>
+                  <div class="timer-counter-title">Hours</div>
+                </div>
+                <div class="timer-counter-separator">:</div>
+                <div class="timer-inner-block">
+                  <div id="timer-minutes" class="timer-counter-text">00</div>
+                  <div class="timer-counter-title">Minutes</div>
+                </div>
+                <div class="timer-counter-separator">:</div>
+                <div class="timer-inner-block">
+                  <div id="timer-seconds" class="timer-counter-text">00</div>
+                  <div class="timer-counter-title">Seconds</div>
+                </div>
+              </div>
+            </div>
+            <div class="timer-separator-line"></div>
+            <div class="timer-content-block">
+              <h2 class="section-title text-color-white">Get Your Dress Look Today</h2>
+              <p class="timer-excerpt">We checked out a bunch of stores and finally found the perfect dress!</p>
+              <div class="button-wrapper center">
+                <a href="/shop" class="secondary-button w-inline-block">
+                  <div class="button-text-block">
+                    <div class="button-text">Shop The Sale</div>
+                  </div>
+                  <div class="button-bg secondary"></div>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Best Sellers Section -->
+    <section class="best-seller-section">
+      <div class="section-gap">
+        <div class="w-layout-blockcontainer container-default w-container">
+          <div class="best-seller-main">
+            <div class="best-seller-wrapper">
+              <div class="best-seller-banner-wrapper">
+                <div class="best-seller-banner-content-block">
+                  <div class="best-seller-subtitle">Our Best Sellers</div>
+                  <h2 class="best-seller-banner-title">-20% Off for Bestsellers Product</h2>
+                  <p class="best-seller-excerpt">Update your wardrobe with our most loved pieces. Simple cuts, premium fabrics, and timeless elegance.</p>
+                  <a href="/shop/no-sidebar" aria-current="page" class="primary-button w-inline-block w--current">
+                    <div class="button-text-block">
+                      <div class="button-text">Shop Now</div>
+                    </div>
+                    <div class="button-bg"></div>
+                  </a>
+                </div>
+                <div class="best-seller-image-block">
+                  <img src="/images/best-seller-image-1.webp" loading="lazy" alt="Best Seller Banner Image" class="best-seller-bg-image home-banner-image" />
+                </div>
+              </div>
+              <div class="best-seller-collection-list w-dyn-list">
+                <div role="list" class="best-seller-collection-grid w-dyn-items">
+                  {bestSellers.map((product) => (
+                    <div role="listitem" class="product-collection-item w-dyn-item">
+                      <div class="product-card-block">
+                        <ProductCard product={product} headingTag="h3" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+  <Footer />
+</BaseLayout>
+
+<script is:inline>
+  /* ── Tab switching ── */
+  (function () {
+    var tabLinks = document.querySelectorAll('.product-archive-tab-menu-link');
+    var tabPanes = document.querySelectorAll('.product-archive-tab-pane');
+
+    tabLinks.forEach(function (link) {
+      link.addEventListener('click', function () {
+        var target = link.getAttribute('data-tab');
+        tabLinks.forEach(function (l) { l.classList.remove('w--current'); });
+        tabPanes.forEach(function (p) { p.classList.remove('w--tab-active'); });
+        link.classList.add('w--current');
+        var pane = document.querySelector('.product-archive-tab-pane[data-tab-pane="' + target + '"]');
+        if (pane) pane.classList.add('w--tab-active');
+      });
+    });
+  })();
+
+  /* ── Sort (main All tab grid) ── */
+  (function () {
+    var sortSelect = document.getElementById('sortSelect');
+    var mainGrid = document.getElementById('mainGrid');
+    if (!sortSelect || !mainGrid) return;
+
+    sortSelect.addEventListener('change', function () {
+      var val = sortSelect.value;
+      var items = Array.from(mainGrid.querySelectorAll('.product-collection-item'));
+      items.sort(function (a, b) {
+        var pa = parseFloat(a.getAttribute('data-price') || '0');
+        var pb = parseFloat(b.getAttribute('data-price') || '0');
+        var na = a.getAttribute('data-name') || '';
+        var nb = b.getAttribute('data-name') || '';
+        if (val === 'price-high') return pb - pa;
+        if (val === 'price-low') return pa - pb;
+        if (val === 'az') return na.localeCompare(nb);
+        if (val === 'za') return nb.localeCompare(na);
+        return 0;
+      });
+      items.forEach(function (item) { mainGrid.appendChild(item); });
+    });
+  })();
+
+  /* ── Countdown timer ── */
+  (function () {
+    var end = new Date('2026-07-09T00:00:00').getTime();
+    function tick() {
+      var diff = end - Date.now();
+      var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+      var d = diff > 0 ? Math.floor(diff / 86400000) : 0;
+      var h = diff > 0 ? Math.floor(diff % 86400000 / 3600000) : 0;
+      var m = diff > 0 ? Math.floor(diff % 3600000 / 60000) : 0;
+      var s = diff > 0 ? Math.floor(diff % 60000 / 1000) : 0;
+      ['timer-days', 'timer-hours', 'timer-minutes', 'timer-seconds'].forEach(function (id, i) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = pad([d, h, m, s][i]);
+      });
+    }
+    tick(); setInterval(tick, 1000);
+  })();
+</script>

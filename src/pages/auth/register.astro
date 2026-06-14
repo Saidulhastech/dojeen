@@ -1,0 +1,170 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Sign Up — Dojeen"
+  description="Create your Dojeen account to start shopping our latest fashion collections."
+  noIndex={true}
+>
+  <div class="user-wrapper">
+
+    <!-- Left: Full-height image panel -->
+    <div class="user-image-block">
+      <img
+        src="/images/login-image.webp"
+        loading="eager"
+        sizes="(max-width: 1880px) 50vw, 940px"
+        srcset="/images/login-image-p-500.webp 500w, /images/login-image-p-800.webp 800w, /images/login-image-p-1080.webp 1080w, /images/login-image-p-1600.webp 1600w, /images/login-image.webp 1880w"
+        alt="Register Image"
+        class="login-image"
+      />
+    </div>
+
+    <!-- Right: Form panel -->
+    <div class="user-form-main">
+
+      <!-- Logo -->
+      <div class="user-logo-link">
+        <a href="/" class="header-logo-link w-inline-block">
+          <img alt="Brand Logo" src="/images/brand-logo.png" class="header-logo" />
+        </a>
+      </div>
+
+      <!-- Tab nav + form -->
+      <div class="user-tab w-tabs">
+
+        <div class="user-tab-menu w-tab-menu">
+          <a
+            href="/auth/login"
+            class="user-tab-link w-inline-block w-tab-link"
+            id="tabSignIn"
+          >
+            <div>Sign In</div>
+          </a>
+          <a
+            class="user-tab-link w-inline-block w-tab-link w--current"
+            id="tabSignUp"
+            style="cursor:default;"
+          >
+            <div>Sign Up</div>
+          </a>
+        </div>
+
+        <div class="user-tabs-content w-tab-content">
+
+          <!-- Sign Up pane (active) -->
+          <div class="user-tab-pane w-tab-pane w--tab-active">
+            <div class="user-form-container">
+              <div class="user-form-block w-form">
+                <form
+                  id="wf-form-Sign-Up-Form"
+                  name="wf-form-Sign-Up-Form"
+                  data-name="Sign Up Form"
+                  method="get"
+                  class="user-form"
+                >
+                  <div class="user-form-wrapper">
+
+                    <div class="input-field-wrapper">
+                      <label for="regEmail" class="user-form-label">Email</label>
+                      <input
+                        class="user-input-field w-input"
+                        maxlength="256"
+                        name="Email"
+                        data-name="Email"
+                        placeholder="Enter your email"
+                        type="email"
+                        id="regEmail"
+                        required
+                      />
+                    </div>
+
+                    <div class="input-field-wrapper">
+                      <label for="regPassword" class="user-form-label">Password</label>
+                      <input
+                        class="user-input-field w-input"
+                        maxlength="256"
+                        name="Password"
+                        data-name="Password"
+                        placeholder="Enter your password"
+                        type="password"
+                        id="regPassword"
+                        required
+                      />
+                    </div>
+
+                    <div class="input-field-wrapper">
+                      <label for="regConfirmPassword" class="user-form-label">Confirm Password</label>
+                      <input
+                        class="user-input-field w-input"
+                        maxlength="256"
+                        name="ConfirmPassword"
+                        data-name="Confirm Password"
+                        placeholder="Confirm your password"
+                        type="password"
+                        id="regConfirmPassword"
+                        required
+                      />
+                    </div>
+
+                    <div id="w-node-register-submit" class="user-submit-button-wrapper">
+                      <input
+                        type="submit"
+                        data-wait="Please wait..."
+                        class="user-submit-button w-button"
+                        value="Sign Up Now"
+                      />
+                    </div>
+
+                  </div>
+                </form>
+
+                <div class="success-message w-form-done" id="registerSuccess" style="display:none;">
+                  <div>Thank you! Your account has been created successfully!</div>
+                </div>
+
+                <div class="error-message w-form-fail" id="registerError" style="display:none;">
+                  <div>Oops! Something went wrong while submitting the form.</div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</BaseLayout>
+
+<script is:inline>
+  (function () {
+    var form = document.getElementById('wf-form-Sign-Up-Form');
+    var successMsg = document.getElementById('registerSuccess');
+
+    if (form && successMsg) {
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        var pwd = document.getElementById('regPassword');
+        var confirmPwd = document.getElementById('regConfirmPassword');
+        var errorMsg = document.getElementById('registerError');
+
+        // Basic password match validation
+        if (pwd && confirmPwd && pwd.value !== confirmPwd.value) {
+          if (errorMsg) {
+            errorMsg.querySelector('div').textContent = 'Passwords do not match. Please try again.';
+            errorMsg.style.display = 'block';
+          }
+          return;
+        }
+
+        if (errorMsg) errorMsg.style.display = 'none';
+        form.style.display = 'none';
+        successMsg.style.display = 'block';
+      });
+    }
+  })();
+</script>

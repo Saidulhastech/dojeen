@@ -1,0 +1,55 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Header from '@/components/layout/Header.astro';
+import Footer from '@/components/layout/Footer.astro';
+import CommonHero from '@/components/ui/CommonHero.astro';
+---
+
+<BaseLayout title="PayPal Checkout — Dojeen" description="Complete your purchase with PayPal." noIndex={true}>
+  <Header variant="default" />
+  <main class="main-wrapper">
+
+    <CommonHero subtitle="Checkout" title="Complete with PayPal" />
+
+    <section class="paypal-checkout-section">
+      <div class="section-gap-bottom">
+        <div class="w-layout-blockcontainer container-default w-container">
+          <div class="paypal-checkout-wrapper">
+            <div class="paypal-checkout-card">
+              <div class="paypal-logo-block">
+                <img src="/images/paypal-logo.svg" loading="lazy" alt="PayPal" class="paypal-logo" style="max-width:140px;" />
+              </div>
+              <p class="paypal-checkout-text">You'll be redirected to PayPal to complete your purchase securely.</p>
+              <div class="paypal-order-summary" id="paypalOrderSummary">
+                <div class="paypal-summary-row">
+                  <span>Total</span>
+                  <span id="paypalTotal">$0.00</span>
+                </div>
+              </div>
+              <a href="/order-confirmation" class="primary-button w-inline-block" style="width:100%;text-align:center">
+                <div class="button-text-block">
+                  <div class="button-text">Pay with PayPal</div>
+                </div>
+                <div class="button-bg"></div>
+              </a>
+              <a href="/checkout" class="paypal-back-link">← Back to Checkout</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+  <Footer />
+</BaseLayout>
+
+<script is:inline>
+  (function () {
+    try {
+      var cart = JSON.parse(localStorage.getItem('dojeen_cart') || '[]');
+      var total = cart.reduce(function (s, i) { return s + i.price * i.quantity; }, 0);
+      var el = document.getElementById('paypalTotal');
+      if (el) el.textContent = '$' + total.toFixed(2);
+    } catch (e) {}
+  })();
+</script>

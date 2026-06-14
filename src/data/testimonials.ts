@@ -1,0 +1,40 @@
+import type { Testimonial } from '../types';
+
+export const testimonials: Testimonial[] = [
+  {
+    id: 1,
+    name: 'Noah Martinez',
+    designation: 'Customer',
+    quote: 'We checked out a bunch of stores and finally found the perfect jeans! It was such a fun shopping trip, from picking out the style to the thrill of getting them delivered.',
+    rating: 4.0,
+    image: 'testimonial-image-1.webp',
+    productThumbnail: 'home-about-image-1.webp',
+    productName: 'Fitted Classic Blue Denim Jacket',
+    productPrice: 89,
+    productSlug: 'fitted-classic-blue-denim-jacket',
+  },
+  {
+    id: 2,
+    name: 'Casey Jordan',
+    designation: 'Customer',
+    quote: 'We checked out a bunch of stores and finally found the perfect jeans! It was such a fun shopping trip, from picking out the style to the thrill of getting them delivered.',
+    rating: 4.5,
+    image: 'testimonial-image-2.webp',
+    productThumbnail: 'home-about-image-2.webp',
+    productName: 'Minimal Linen Summer Dress',
+    productPrice: 65,
+    productSlug: 'minimal-linen-summer-dress',
+  },
+  {
+    id: 3,
+    name: 'Alex Morgan',
+    designation: 'Customer',
+    quote: 'We checked out a bunch of stores and finally found the perfect jeans! It was such a fun shopping trip, from picking out the style to the thrill of getting them delivered.',
+    rating: 5.0,
+    image: 'testimonial-image-3.webp',
+    productThumbnail: 'home-about-image-3.webp',
+    productName: 'Oversized Cotton Crew Neck Tee',
+    productPrice: 35,
+    productSlug: 'oversized-cotton-crew-neck-tee',
+  },
+];

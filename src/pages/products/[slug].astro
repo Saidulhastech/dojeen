@@ -1,0 +1,417 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Header from '@/components/layout/Header.astro';
+import Footer from '@/components/layout/Footer.astro';
+import ProductCard from '@/components/sections/ProductCard.astro';
+import { products } from '@/data/products';
+import type { GetStaticPaths } from 'astro';
+import type { Product } from '@/types';
+
+export const getStaticPaths: GetStaticPaths = () => {
+  return products.map((product) => ({
+    params: { slug: product.slug },
+    props: { product },
+  }));
+};
+
+interface Props {
+  product: Product;
+}
+
+const { product } = Astro.props;
+const relatedProducts = products
+  .filter((p) => p.categorySlug === product.categorySlug && p.slug !== product.slug)
+  .slice(0, 4);
+const allImages = [product.thumbnail, product.thumbnailHover, ...product.images].filter(
+  (img, idx, arr) => arr.indexOf(img) === idx
+);
+---
+
+<BaseLayout title={`${product.name} — Dojeen`} description={product.description}>
+  <Header variant="default" currentPath={Astro.url.pathname} />
+  <main class="main-wrapper">
+
+    <!-- Product Details Section -->
+    <section class="product-details-section page-top-gap">
+      <div class="cms-hero-gap">
+        <div class="w-layout-blockcontainer container-default w-container">
+          <div class="prodcut-details-wrapper">
+
+            <!-- Left: Images + Accordion -->
+            <div class="product-details-left-block">
+              <!-- Image Gallery (all 3 visible in 2-col grid, matching Webflow) -->
+              <div class="product-lightbox-wrapper">
+                {allImages.slice(0, 3).map((img) => (
+                  <a href={`/images/${img}`} class="product-lightbox w-inline-block">
+                    <img loading="lazy" src={`/images/${img}`} alt={product.name} class="product-image" />
+                  </a>
+                ))}
+              </div>
+
+              <!-- Accordions -->
+              <div class="product-accordion-wrapper">
+                <div class="product-accordion" data-accordion>
+                  <div class="product-accordion-toggle" data-accordion-toggle>
+                    <div class="product-accordion-title-block">
+                      <img src="/images/product-accordion-icon-1.svg" loading="lazy" alt="Accordion Icon" class="product-accordion-icon" />
+                      <div class="product-accordion-title">Product Information's</div>
+                    </div>
+                    <img src="/images/accordion-arrow.svg" loading="lazy" alt="Accordion Arrow" class="product-accordion-arrow" />
+                  </div>
+                  <div class="product-accordion-body" style="height:0px" data-accordion-body>
+                    <div class="product-accordion-inner">
+                      <div class="product-information w-richtext">
+                        <p>{product.description}</p>
+                        {product.careInstructions && (
+                          <p><strong>Care:</strong> {product.careInstructions}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="product-accordion" data-accordion>
+                  <div class="product-accordion-toggle" data-accordion-toggle>
+                    <div class="product-accordion-title-block">
+                      <img src="/images/product-accordion-icon-2.svg" loading="lazy" alt="Accordion Icon" class="product-accordion-icon" />
+                      <div class="product-accordion-title">Size Advice</div>
+                    </div>
+                    <img src="/images/accordion-arrow.svg" loading="lazy" alt="Accordion Arrow" class="product-accordion-arrow" />
+                  </div>
+                  <div class="product-accordion-body" style="height:0px" data-accordion-body>
+                    <div class="product-accordion-inner">
+                      <div class="product-size-guide w-richtext">
+                        <p>We want you to find the perfect fit. Since sizing can vary between styles, please check our size chart before purchasing.</p>
+                        <ul role="list">
+                          <li><strong>Measure Yourself:</strong> Use a soft tape to measure your bust, waist, and hips.</li>
+                          <li><strong>Compare with Chart:</strong> Match your measurements with our guide to pick the closest size.</li>
+                          <li><strong>Sizing Guide:</strong>
+                            <ul role="list">
+                              <li><strong>S (Small):</strong> Best for bust 32–34&quot;, waist 24–26&quot;, hips 34–36&quot;.</li>
+                              <li><strong>M (Medium):</strong> Best for bust 35–36&quot;, waist 27–28&quot;, hips 37–38&quot;.</li>
+                              <li><strong>L (Large):</strong> Best for bust 37–39&quot;, waist 29–31&quot;, hips 39–41&quot;.</li>
+                              <li><strong>XL (Extra Large):</strong> Best for bust 40–42&quot;, waist 32–34&quot;, hips 42–44&quot;.</li>
+                            </ul>
+                          </li>
+                          <li><strong>Between Sizes?</strong> Choose the larger size for comfort.</li>
+                          <li><strong>Fit Preference:</strong> One size down for a snug fit, or up for a relaxed fit.</li>
+                          <li><strong>Unsure?</strong> Our customer care team is here to help you choose.</li>
+                        </ul>
+                        <p>Tip: Stretch fabrics may feel looser, while structured styles fit more snugly.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="product-accordion" data-accordion>
+                  <div class="product-accordion-toggle" data-accordion-toggle>
+                    <div class="product-accordion-title-block">
+                      <img src="/images/product-accordion-icon-1.svg" loading="lazy" alt="Accordion Icon" class="product-accordion-icon" />
+                      <div class="product-accordion-title">Shipping &amp; Returns</div>
+                    </div>
+                    <img src="/images/accordion-arrow.svg" loading="lazy" alt="Accordion Arrow" class="product-accordion-arrow" />
+                  </div>
+                  <div class="product-accordion-body" style="height:0px" data-accordion-body>
+                    <div class="product-accordion-inner">
+                      <div class="shipping-and-return w-richtext">
+                        <ul role="list">
+                          <li>Orders are processed within 1–2 business days.</li>
+                          <li>Delivery takes 3–7 business days depending on location.</li>
+                          <li>Tracking details are emailed once shipped.</li>
+                          <li>Returns are accepted within 14 days of delivery.</li>
+                          <li>Items must be unused and in original packaging.</li>
+                          <li>Return shipping costs apply unless the item is defective.</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Product Info -->
+            <div class="product-details-right-block">
+              <!-- Rating: individual small star icons + text (matching Webflow) -->
+              <div class="product-review-wrapper">
+                <div class="product-star-rating-block">
+                  <div style="display:flex;gap:3px;align-items:center;">
+                    {Array.from({ length: Math.floor(product.rating) }).map(() => (
+                      <img src="/images/star-full.svg" alt="" style="width:20px;height:20px;display:block;" />
+                    ))}
+                    {product.rating % 1 >= 0.5 && (
+                      <img src="/images/star-half.svg" alt="" style="width:20px;height:20px;display:block;" />
+                    )}
+                  </div>
+                  <div class="product-star-rating-text">({product.rating})</div>
+                </div>
+                <div class="product-details-review-separator"></div>
+                <div class="product-reveiw-amonut">{product.reviewCount} Reviews</div>
+              </div>
+
+              <h1 class="product-title">{product.name}</h1>
+
+              <!-- Pricing -->
+              <div class="product-details-pricing-wrapper">
+                <div class="product-details-pricing-block">
+                  {product.isOnSale ? (
+                    <>
+                      <div class="product-details-price">${product.price.toFixed(2)}</div>
+                      <div class="product-details-pricing-separator"></div>
+                      <div class="product-details-compare-price">${(product.comparePrice ?? product.price).toFixed(2)}</div>
+                    </>
+                  ) : (
+                    <div class="product-details-price">${product.price.toFixed(2)}</div>
+                  )}
+                </div>
+                {product.isOnSale && <div class="sale-badge">Sale</div>}
+              </div>
+
+              <!-- Stock -->
+              {product.inStock && (
+                <div class="stock-alert">
+                  <div class="stock-alert-shape-block">
+                    <div class="stock-alert-shape-wave"></div>
+                  </div>
+                  <div class="stock-alert-text">In Stock, Ready to ship</div>
+                </div>
+              )}
+
+              <!-- Description -->
+              <p class="product-description">{product.description}</p>
+
+              <!-- Add to Cart -->
+              <div class="product-details-add-to-cart">
+
+                <!-- Color + Size selectors (Color first, matching Webflow order) -->
+                <div class="product-option-list">
+                  {product.colors.length > 0 && (
+                    <div class="product-option">
+                      <label class="product-option-label">Color: <span id="selectedColorLabel">{product.colors[0]}</span></label>
+                      <div class="product-option-button-group" id="colorSelector">
+                        {product.colors.map((color, idx) => (
+                          <button
+                            class={`product-size-btn${idx === 0 ? ' active' : ''}`}
+                            data-color={color}
+                            title={color}
+                          >
+                            {color}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {product.sizes.length > 0 && (
+                    <div class="product-option">
+                      <label class="product-option-label">Size</label>
+                      <div class="product-option-button-group" id="sizeSelector">
+                        {product.sizes.map((size, idx) => (
+                          <button
+                            class={`product-size-btn${idx === 0 ? ' active' : ''}`}
+                            data-size={size}
+                          >
+                            {size}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <!-- Meta (with product-meta-icon matching Webflow) -->
+                <div class="product-meta-wrapper">
+                  <div class="product-meta-block">
+                    <div class="product-meta-icon"></div>
+                    <div class="product-meta-title">SKU:</div>
+                    <div class="product-meta-text">{product.sku}</div>
+                  </div>
+                  <div class="product-meta-block">
+                    <div class="product-meta-icon"></div>
+                    <div class="product-meta-title">Category:</div>
+                    <div class="product-meta-text">
+                      <a href={`/shop/category/${product.categorySlug}`}>{product.category}</a>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Quantity + Add to Cart -->
+                <div class="add-to-cart-button-wrapper">
+                  <label for="productQty" class="product-option-label">Quantity</label>
+                  <div class="product-add-to-cart-block">
+                    <input
+                      type="number"
+                      id="productQty"
+                      min="1"
+                      value="1"
+                      class="w-commerce-commerceaddtocartquantityinput quantity"
+                    />
+                    <button
+                      class="w-commerce-commerceaddtocartbutton add-to-card-button"
+                      id="addToCartBtn"
+                    >
+                      Add to Cart
+                    </button>
+                  </div>
+                  <a href="/checkout" class="w-commerce-commercebuynowbutton buy-now-button">Buy now</a>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Related Products (slider matching Webflow structure) -->
+    {relatedProducts.length > 0 && (
+      <section class="product-section">
+        <div class="section-gap-bottom">
+          <div class="w-layout-blockcontainer container-default w-container">
+            <div class="section-title-block center">
+              <div class="section-title-inner">
+                <h2 class="section-title">Related Products</h2>
+              </div>
+            </div>
+            <div class="product-slider w-slider" id="relatedSlider" style="overflow:hidden;position:relative;">
+              <div class="left-overlay"></div>
+              <div class="right-overlay"></div>
+              <div class="product-slider-mask w-slider-mask" id="relatedMask" style="display:flex;flex-wrap:nowrap;transition:transform 0.4s ease;">
+                {relatedProducts.map((p) => (
+                  <div class="product-slider-item w-slide">
+                    <div class="product-collection-list w-dyn-list">
+                      <div role="list" class="product-slider-item-wrapper w-dyn-items">
+                        <div role="listitem" class="product-collection-item w-dyn-item">
+                          <div class="product-card-block">
+                            <ProductCard product={p} headingTag="h3" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div class="product-slider-arrow left w-slider-arrow-left" id="relatedPrev">
+                <div class="product-slider-arrow-icon w-icon-slider-left"></div>
+              </div>
+              <div class="product-slider-arrow right w-slider-arrow-right" id="relatedNext">
+                <div class="product-slider-arrow-icon w-icon-slider-right"></div>
+              </div>
+              <div class="hidden-slider-nav w-slider-nav w-round w-num"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    )}
+
+  </main>
+  <Footer />
+</BaseLayout>
+
+<script>
+  import { addToCart } from '@/lib/cart';
+
+  // Size selector
+  const sizeSelector = document.getElementById('sizeSelector');
+  let selectedSize = '';
+  if (sizeSelector) {
+    const firstBtn = sizeSelector.querySelector<HTMLElement>('[data-size]');
+    if (firstBtn) selectedSize = firstBtn.getAttribute('data-size') || '';
+    sizeSelector.querySelectorAll<HTMLElement>('[data-size]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        sizeSelector!.querySelectorAll('[data-size]').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedSize = btn.getAttribute('data-size') || '';
+      });
+    });
+  }
+
+  // Color selector
+  const colorSelector = document.getElementById('colorSelector');
+  const colorLabel = document.getElementById('selectedColorLabel');
+  let selectedColor = '';
+  if (colorSelector) {
+    const firstBtn = colorSelector.querySelector<HTMLElement>('[data-color]');
+    if (firstBtn) selectedColor = firstBtn.getAttribute('data-color') || '';
+    colorSelector.querySelectorAll<HTMLElement>('[data-color]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        colorSelector!.querySelectorAll('[data-color]').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedColor = btn.getAttribute('data-color') || '';
+        if (colorLabel) colorLabel.textContent = selectedColor;
+      });
+    });
+  }
+
+  // Add to cart
+  const addToCartBtn = document.getElementById('addToCartBtn');
+  if (addToCartBtn) {
+    addToCartBtn.addEventListener('click', () => {
+      const qtyInput = document.getElementById('productQty') as HTMLInputElement;
+      const qty = parseInt(qtyInput?.value || '1', 10);
+      const slug = window.location.pathname.split('/').pop() || '';
+      const nameEl = document.querySelector('.product-title');
+      const priceEl = document.querySelector('.product-details-price');
+      const imgEl = document.querySelector('.product-lightbox img') as HTMLImageElement;
+      addToCart({
+        id: `${slug}-${selectedSize}-${selectedColor}`,
+        slug,
+        name: nameEl?.textContent || '',
+        price: parseFloat(priceEl?.textContent?.replace('$', '') || '0'),
+        image: imgEl?.src || '',
+        quantity: qty,
+        size: selectedSize,
+        color: selectedColor,
+      });
+      if (typeof (window as any).__dojeenOpenCart === 'function') {
+        (window as any).__dojeenOpenCart();
+      }
+    });
+  }
+</script>
+
+<script is:inline>
+  /* ── Accordion ── */
+  (function () {
+    document.querySelectorAll('[data-accordion]').forEach(function (accordion) {
+      var toggle = accordion.querySelector('[data-accordion-toggle]');
+      var body = accordion.querySelector('[data-accordion-body]');
+      if (!toggle || !body) return;
+      toggle.addEventListener('click', function () {
+        var isOpen = accordion.classList.contains('open');
+        document.querySelectorAll('[data-accordion]').forEach(function (a) {
+          a.classList.remove('open');
+          var b = a.querySelector('[data-accordion-body]');
+          if (b) b.style.height = '0px';
+        });
+        if (!isOpen) {
+          accordion.classList.add('open');
+          body.style.height = body.scrollHeight + 'px';
+        }
+      });
+    });
+  })();
+
+  /* ── Related products slider (responsive: 4 desktop / 2 tablet / 1 mobile) ── */
+  (function () {
+    var slider = document.getElementById('relatedSlider');
+    var mask = document.getElementById('relatedMask');
+    var prev = document.getElementById('relatedPrev');
+    var next = document.getElementById('relatedNext');
+    if (!slider || !mask || !prev || !next) return;
+    var slides = Array.from(mask.querySelectorAll('.product-slider-item'));
+    if (!slides.length) return;
+    var cur = 0;
+    var total = slides.length;
+    function slideW() { return slides[0].offsetWidth; }
+    function visibleCount() {
+      var sw = slideW();
+      return sw > 0 ? Math.max(1, Math.round(slider.offsetWidth / sw)) : 1;
+    }
+    function maxCur() { return Math.max(0, total - visibleCount()); }
+    function update() {
+      var mc = maxCur();
+      if (cur > mc) cur = mc;
+      mask.style.transform = 'translateX(-' + (cur * slideW()) + 'px)';
+    }
+    prev.addEventListener('click', function () { if (cur > 0) { cur--; update(); } });
+    next.addEventListener('click', function () { if (cur < maxCur()) { cur++; update(); } });
+    window.addEventListener('resize', function () { cur = Math.min(cur, maxCur()); update(); });
+  })();
+</script>

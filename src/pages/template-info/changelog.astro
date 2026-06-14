@@ -1,0 +1,31 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Header from '@/components/layout/Header.astro';
+import Footer from '@/components/layout/Footer.astro';
+import CommonHero from '@/components/ui/CommonHero.astro';
+---
+
+<BaseLayout title="Changelog — Dojeen" description="Version history and release notes for the Dojeen template." noIndex={true}>
+  <Header variant="default" />
+  <main class="main-wrapper">
+
+    <CommonHero subtitle="Changelog" title="Version Highlights: Dojeen Template" />
+
+    <section class="changelog-section">
+      <div class="section-gap">
+        <div class="w-layout-blockcontainer container-default w-container">
+          <div class="changelog-container">
+            <div class="changelog-heading">Version 1.0</div>
+            <div class="realeased-date-wrapper">
+              <div class="initial-release">Initial Release</div>
+              <div class="release-date">11th June 2026</div>
+            </div>
+            <div class="changelog-text">The template has been released!</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+  <Footer />
+</BaseLayout>

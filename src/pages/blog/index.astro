@@ -1,0 +1,122 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Header from '@/components/layout/Header.astro';
+import Footer from '@/components/layout/Footer.astro';
+import CommonHero from '@/components/ui/CommonHero.astro';
+import BlogCard from '@/components/sections/BlogCard.astro';
+import { posts, blogCategories, getFeaturedPosts } from '@/data/blog';
+
+const featuredPosts = getFeaturedPosts();
+const firstFeatured = featuredPosts[0];
+
+const tabData = blogCategories.map((cat) => ({
+  label: cat,
+  posts: cat === 'All' ? posts : posts.filter((p) => p.category === cat),
+}));
+---
+
+<BaseLayout title="Blog — Dojeen" description="News, tips, and style advice from the Dojeen team.">
+  <Header variant="default" currentPath="/blog" />
+  <main class="main-wrapper">
+
+    <CommonHero
+      subtitle="Recent Blog"
+      title="News & Articles"
+      excerpt="This stylish women's dress combines comfort and elegance, featuring a flattering fit, soft fabric, and timeless design. Perfect for casual outings or special occasions, it effortlessly transitions."
+      excerptClass="blog"
+    />
+
+    {firstFeatured && (
+      <section class="featured-blog-section">
+        <div class="section-gap">
+          <div class="w-layout-blockcontainer container-default w-container">
+            <div class="blog-list-wrapper w-dyn-list">
+              <div role="list" class="blog-list w-dyn-items">
+                <div role="listitem" class="blog-list-item w-dyn-item reveal">
+                  <BlogCard post={firstFeatured} headingTag="h2" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    )}
+
+    <section class="blog-section">
+      <div class="section-gap-bottom">
+        <div class="w-layout-blockcontainer container-default w-container">
+          <div class="blog-tab-wrapper">
+            <div class="blog-section-title-block">
+              <h2 class="section-title">Explore More</h2>
+            </div>
+            <div class="blog-tabs w-tabs">
+              <div class="blog-tab-menu w-tab-menu" id="blogTabMenu">
+                {tabData.map((tab, idx) => (
+                  <a
+                    href="#"
+                    class={`blog-tab-menu-link w-inline-block w-tab-link${idx === 0 ? ' w--current' : ''}`}
+                    data-tab-index={String(idx)}
+                  >
+                    <div>{tab.label}</div>
+                  </a>
+                ))}
+              </div>
+              <div class="blog-tab-content w-tab-content" id="blogTabContent">
+                {tabData.map((tab, idx) => (
+                  <div
+                    class={`blog-tab-pane w-tab-pane${idx === 0 ? ' w--tab-active' : ''}`}
+                    data-tab-pane={String(idx)}
+                  >
+                    <div class="blog-list-wrapper w-dyn-list">
+                      <div role="list" class="blog-list w-dyn-items">
+                        {tab.posts.map((post) => (
+                          <div role="listitem" class="blog-list-item w-dyn-item">
+                            <BlogCard post={post} headingTag="h3" />
+                          </div>
+                        ))}
+                      </div>
+                      {tab.posts.length === 0 && (
+                        <div class="w-dyn-empty">
+                          <div>No items found.</div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+  <Footer />
+</BaseLayout>
+
+<script is:inline>
+  (function () {
+    var tabMenu = document.getElementById('blogTabMenu');
+    var tabContent = document.getElementById('blogTabContent');
+    if (!tabMenu || !tabContent) return;
+
+    var tabs = tabMenu.querySelectorAll('.blog-tab-menu-link');
+    var panes = tabContent.querySelectorAll('.blog-tab-pane');
+
+    tabs.forEach(function (tab) {
+      tab.addEventListener('click', function (e) {
+        e.preventDefault();
+        var idx = tab.getAttribute('data-tab-index');
+        tabs.forEach(function (t) { t.classList.remove('w--current'); });
+        tab.classList.add('w--current');
+        panes.forEach(function (pane) {
+          if (pane.getAttribute('data-tab-pane') === idx) {
+            pane.classList.add('w--tab-active');
+          } else {
+            pane.classList.remove('w--tab-active');
+          }
+        });
+      });
+    });
+  })();
+</script>

@@ -1,0 +1,45 @@
+{
+  "name": "dojeen",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Dojeen — a modern fashion e-commerce Astro website template",
+  "keywords": [
+    "astro",
+    "theme",
+    "fashion",
+    "ecommerce",
+    "template",
+    "clothing",
+    "webflow"
+  ],
+  "author": {
+    "name": "Aslam Hasib",
+    "email": "hello@brandbes.com",
+    "url": "https://brandbes.com"
+  },
+  "license": "SEE LICENSE IN LICENSE",
+  "homepage": "https://github.com/Brandbes-Astro-Themes/dojeen",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Brandbes-Astro-Themes/dojeen.git"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "release:patch": "npm version patch -m \"chore: release %s\" && git push && git push --tags",
+    "release:minor": "npm version minor -m \"chore: release %s\" && git push && git push --tags",
+    "release:major": "npm version major -m \"chore: release %s\" && git push && git push --tags"
+  },
+  "dependencies": {
+    "@astrojs/check": "^0.9.9",
+    "@astrojs/sitemap": "^3.7.3",
+    "@tailwindcss/vite": "^4.3.0",
+    "astro": "^6.4.4",
+    "tailwindcss": "^4.3.0"
+  }
+}

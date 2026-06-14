@@ -1,0 +1,142 @@
+---
+import '../styles/global.css';
+import CartDrawer from '@/components/layout/CartDrawer.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  ogImage?: string;
+  noIndex?: boolean;
+}
+
+const {
+  title,
+  description = 'Dojeen is a modern clothing website template for fashion businesses online.',
+  ogImage = '/og-image.jpg',
+  noIndex = false,
+} = Astro.props;
+
+const siteOrigin = Astro.site ? Astro.site.toString().replace(/\/$/, '') : '';
+const ogImageAbsolute = ogImage.startsWith('http') ? ogImage : siteOrigin + ogImage;
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    {noIndex && <meta name="robots" content="noindex" />}
+
+    <!-- Canonical -->
+    <link rel="canonical" href={canonicalUrl} />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImageAbsolute} />
+    <meta property="og:url" content={canonicalUrl} />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageAbsolute} />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <!-- Google Fonts (async) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      id="google-fonts-link"
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
+    />
+    <script is:inline>
+      (function () {
+        var link = document.getElementById('google-fonts-link');
+        if (link) link.rel = 'stylesheet';
+      })();
+    </script>
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
+      />
+    </noscript>
+
+    <!-- Per-page head overrides -->
+    <slot name="head" />
+  </head>
+  <body>
+    <div class="page-wrapper">
+      <slot />
+    </div>
+
+    <!-- Cart Drawer (always present in DOM) -->
+    <CartDrawer />
+
+    <!-- Scroll reveal + stagger -->
+    <script is:inline>
+      (function () {
+        var vh = window.innerHeight;
+
+        /* ── Individual reveals (elements NOT inside a [data-stagger] container) ── */
+        var soloEls = Array.from(document.querySelectorAll('.reveal')).filter(function (el) {
+          return !el.closest('[data-stagger]');
+        });
+        var soloObserver = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('visible');
+              soloObserver.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.1 });
+        soloEls.forEach(function (el) {
+          var rect = el.getBoundingClientRect();
+          if (rect.top < vh && rect.bottom >= 0) {
+            el.classList.add('visible');
+          } else {
+            soloObserver.observe(el);
+          }
+        });
+
+        /* ── Stagger reveals ([data-stagger] containers → children animate in sequence) ── */
+        var staggerObserver = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (!entry.isIntersecting) return;
+            var children = Array.from(entry.target.querySelectorAll('.reveal'));
+            children.forEach(function (child, i) {
+              child.style.transitionDelay = (i * 0.12) + 's';
+            });
+            requestAnimationFrame(function () {
+              children.forEach(function (child) {
+                child.classList.add('visible');
+              });
+            });
+            staggerObserver.unobserve(entry.target);
+          });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('[data-stagger]').forEach(function (el) {
+          var rect = el.getBoundingClientRect();
+          if (rect.top < vh && rect.bottom >= 0) {
+            /* already on screen — reveal immediately, no stagger */
+            Array.from(el.querySelectorAll('.reveal')).forEach(function (child) {
+              child.classList.add('visible');
+            });
+          } else {
+            staggerObserver.observe(el);
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>

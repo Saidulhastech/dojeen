@@ -1,0 +1,862 @@
+@import "tailwindcss";
+@import "./webflow.css";
+
+/* ─── Webflow background-video base styles (normally from webflow.js bundle) ─── */
+.w-background-video {
+  position: relative;
+  overflow: hidden;
+}
+.w-background-video > video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -100;
+}
+
+/* ─── Webflow slider primitives (normally in webflow.js bundle, not exported CSS) ─── */
+.w-slider {
+  position: relative;
+  clear: both;
+}
+.w-slider-mask {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.w-slide {
+  position: relative;
+  display: inline-block;
+  vertical-align: top;
+  width: 100%;
+  white-space: normal;
+  text-align: left;
+}
+.w-slider-arrow-left,
+.w-slider-arrow-right {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  margin: auto;
+  cursor: pointer;
+  overflow: hidden;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.w-slider-arrow-left { left: 0; right: auto; }
+.w-slider-arrow-right { right: 0; }
+.w-slider-nav {
+  position: absolute;
+  z-index: 2;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin: auto;
+  padding-top: 10px;
+  height: 40px;
+  text-align: center;
+  user-select: none;
+}
+.w-slider-dot {
+  position: relative;
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  background-color: transparent;
+  cursor: pointer;
+  margin: 0 3px 0.5em;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  transition: background-color 0.1s, border-color 0.1s;
+}
+.w-slider-nav.w-round .w-slider-dot { border-radius: 100%; }
+.w-slider-dot.w-active {
+  background-color: rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 255, 255, 0.9);
+}
+
+/* Arrow icon fallback (Webflow icon font not loaded in Astro) */
+.w-icon-slider-left::before  { content: '←'; font-size: 16px; line-height: 1; }
+.w-icon-slider-right::before { content: '→'; font-size: 16px; line-height: 1; }
+
+/* .hidden-slider-arrow { display: none } is in webflow.css but our base .w-slider-arrow-*
+   { display: flex } comes later in the cascade and wins — re-assert none here. */
+.hidden-slider-arrow { display: none; }
+
+/* Offers slider nav: our base .w-slider-nav rule (position C) sets left:0, right:0, height:40px,
+   margin:auto, padding-top:10px — all of which beat webflow.css (position B) at equal specificity.
+   Re-assert every property from webflow.css here at position C+1. */
+.offers-slider-nav {
+  right: 20px;
+  left: auto;
+  top: 0;
+  bottom: 0;
+  height: 140px;
+  width: 40px;
+  margin: auto 0 auto auto;
+  padding-top: 0;
+  text-align: left;
+  display: flex;
+  flex-flow: column;
+}
+
+/* Missing display declarations (provided by Webflow base CSS, not the exported project CSS) */
+/* product-slider-item-wrapper: each slide has 1 product; block (not grid) so it fills the full
+   slide width. The webflow.css 1fr 1fr template only makes sense when Webflow CMS loads 2 items. */
+.product-slider-item-wrapper { display: block; }
+/* offers-collections: Webflow base renders w-dyn-items as flex; grid-template is set in webflow.css but needs flex to size correctly in a shrink-to-fit absolute container */
+.offers-collections { display: flex; flex-wrap: wrap; }
+
+/* Webflow tabs: inactive panes are hidden; active pane is shown.
+   Webflow.js normally provides this; the exported CSS does not. */
+.w-tab-pane { display: none; }
+.w-tab-pane.w--tab-active { display: block; }
+
+/* ─── Offers section: absolute-position + opacity fade (matches Webflow IX2 behaviour) ─── */
+/* Previous BG drives the card-block height. Pin to 600px so portrait images don't make the
+   section taller than intended (slides are position:absolute and don't clip to the mask). */
+.offers-bg-image-previous { width: 100%; height: 600px; }
+/* Active BG: Webflow IX2 animates from bottom:-100% → inset:0. Show it statically. */
+.offers-bg-image-active { bottom: 0; top: 0; height: 100%; }
+
+/* Product slider mask: overflow visible so slides 1-4 show side-by-side.
+   Base .w-slider-mask{overflow:hidden} (position C) beats webflow.css (position B). */
+.product-slider-mask { overflow: visible; }
+
+/* Bundle product card images: webflow.css only sets z-index/position on these — no sizing.
+   Webflow's base CSS (from webflow.js) applies max-width:100% globally; we add width:100%
+   so the main thumbnail fills the card. aspect-ratio + object-fit give consistent card heights.
+   The secondary thumbnail is hidden (Webflow IX2 shows it on hover via opacity animation;
+   the tab system already handles image switching in the bundle section). */
+.bundle-product-main-thumbnail {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  display: block;
+}
+.bundle-product-secondary-thumbnail {
+  opacity: 0;
+  object-fit: cover;
+}
+
+/* Offers mask: visible so the product card at left:-40px shows in the left column.
+   Same cascade issue as above — re-override at position C+1. */
+.offer-slider-mask {
+  overflow: visible;
+  min-height: 600px;   /* mask needs explicit height because all slides are position:absolute */
+}
+
+/* All offer slides stack at top-left of the mask and fade in/out.
+   This avoids the scrolling-track model which would sweep slides through the left column. */
+.offers-slider .w-slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  display: block;
+  white-space: normal;
+  opacity: 0;
+  transition: opacity 0.45s ease;
+  z-index: 1;
+}
+.offers-slider .w-slide.is-active {
+  opacity: 1;
+  z-index: 2;
+}
+
+/* Partner slider: crossfade (data-animation="cross" in Webflow).
+   Active slide is position:relative so the mask height equals the active slide's height.
+   Inactive slides are position:absolute overlaid at opacity:0. */
+.partner-slider .w-slide {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  white-space: normal;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+}
+.partner-slider .w-slide.is-active {
+  position: relative;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ─── Partner slider: fix arrow position on mobile ───────────────────────────
+   webflow.css at ≤767px sets left:-60px / right:-60px which pushes both arrows
+   off-screen. Override to place them side-by-side, centered at the bottom. */
+@media (max-width: 767px) {
+  .partner-slider-arrow {
+    top: auto !important;
+    bottom: 10px;
+    margin: 0 !important;
+  }
+  .partner-slider-arrow.left {
+    left: calc(50% - 44px) !important;
+    right: auto !important;
+  }
+  .partner-slider-arrow.right {
+    right: calc(50% - 44px) !important;
+    left: auto !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .footer-input { width: 100%; }
+  .product-section .section-gap { padding-bottom: 60px; }
+
+  /* Fix product slider arrows pushed off-screen by webflow.css left/right:-60px */
+  .product-slider-arrow {
+    top: auto !important;
+    bottom: 10px;
+    margin: 0 !important;
+  }
+  .product-slider-arrow.left {
+    left: calc(50% - 44px) !important;
+    right: auto !important;
+  }
+  .product-slider-arrow.right {
+    right: calc(50% - 44px) !important;
+    left: auto !important;
+  }
+}
+
+/* ─── Homepage header: neutral-100 bg to match Webflow variant ─── */
+.header-homepage,
+.header-homepage .header-main {
+  background-color: var(--_color---neutral-100);
+}
+
+/* Search input height */
+.search-input { height: 38px; }
+
+/* product-name: Webflow uses <div> (body-text styling). We render it as h2/h3 for semantics
+   so override the heading font-size/family back to body-text to match the Webflow design. */
+.product-name {
+  font-size: var(--_font-sizes---body-text);
+  font-family: var(--_font-family---font-famity-body);
+  line-height: var(--_line-height---line-height-6);
+  font-weight: var(--_font-weight---medium);
+}
+
+/* Cart button: flex layout (Webflow base CSS normally provides this) */
+.cart-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+/* ─── Primary button hover: white circle wipes in from above (replaces Webflow IX2) ───
+   webflow.css sets .button-bg at transform:translate(0,-76%) — off-screen above the button.
+   On hover the circle translates down to fill the button; text transitions white→black. */
+.button-bg {
+  transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.primary-button:hover .button-bg,
+.secondary-button:hover .button-bg {
+  transform: translate(0, 0);
+}
+
+/* ─── Mobile nav panel (global — Astro-scoped background/z-index fails in
+   certain Vite/Tailwind v4 cascade configurations; global CSS is reliable) ── */
+.mobile-nav-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 9997;
+}
+.mobile-nav-overlay.open { display: block; }
+
+.mobile-nav-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: min(300px, 85vw);
+  background: #fff;
+  z-index: 9998;
+  transform: translateX(-100%);
+  transition: transform 0.35s ease;
+  overflow-y: auto;
+  box-shadow: 0 13px 48px rgba(0, 0, 0, 0.2);
+}
+.mobile-nav-panel.open { transform: translateX(0); }
+
+.mobile-nav-inner {
+  display: flex;
+  flex-direction: column;
+  padding: 120px 24px 80px;
+}
+/* ─── Testimonial mobile slider ──────────────────────────────────────────── */
+@media (max-width: 767px) {
+  .testimonial-scroll-wrapper { min-height: auto !important; }
+  .testimonial-main { position: static !important; top: auto !important; }
+  .testimonial-marquee-wrapper { overflow: hidden; }
+  .testimonial-marquee-inner { transition: transform 0.4s ease; will-change: transform; }
+  /* hide the duplicate marquee block used for infinite looping */
+  .testimonial-marquee-block + .testimonial-marquee-block { display: none !important; }
+  .testimonial-card-block {
+    flex-shrink: 0;
+    width: calc(100vw - 32px) !important;
+    max-width: calc(100vw - 32px) !important;
+    margin-right: 16px;
+    box-sizing: border-box;
+  }
+  .testimonial-mobile-dots {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    padding-top: 20px;
+  }
+  .testimonial-mobile-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--_color---neutral-400, #e5e8ec);
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: width 0.3s ease, background 0.3s ease, border-radius 0.3s ease;
+  }
+  .testimonial-mobile-dot.active {
+    width: 20px;
+    border-radius: 4px;
+    background: var(--_color---black, #1d1d1d);
+  }
+}
+@media (min-width: 768px) {
+  .testimonial-mobile-dots { display: none !important; }
+}
+
+.mobile-nav-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1.5px solid var(--_color---neutral-400, #e5e8ec);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 8px;
+}
+.mobile-nav-search-icon {
+  flex-shrink: 0;
+  color: var(--_color---neutral-600, #888);
+}
+.mobile-nav-search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--_font-family---font-secondary, 'Inter', sans-serif);
+  font-size: 14px;
+  color: var(--_color---black, #1d1d1d);
+}
+.mobile-nav-search-input::placeholder {
+  color: var(--_color---neutral-600, #888);
+}
+.mobile-nav-link {
+  font-family: var(--_font-family---font-primary, 'Instrument Sans', sans-serif);
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--_color---black, #1d1d1d);
+  text-decoration: none;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--_color---neutral-400, #e5e8ec);
+}
+.mobile-nav-group {
+  border-bottom: 1px solid var(--_color---neutral-400, #e5e8ec);
+}
+.mobile-nav-group-toggle {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--_font-family---font-primary, 'Instrument Sans', sans-serif);
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--_color---black, #1d1d1d);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 14px 0;
+  text-align: left;
+}
+.mobile-nav-arrow { font-size: 14px; }
+.mobile-nav-group-items {
+  display: none;
+  flex-direction: column;
+  padding-left: 12px;
+}
+.mobile-nav-group-items.open { display: flex; }
+.mobile-nav-sub-link {
+  font-size: 14px;
+  color: var(--_color---neutral-600, #3b3b3b);
+  text-decoration: none;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--_color---neutral-400, #e5e8ec);
+}
+
+/* ─── Mobile header layout ───────────────────────────────────────────────────
+   Logo left, buttons right — matches Webflow original (space-between flex).
+   nav-menu-wrapper is display:none on mobile so it doesn't steal flex width. */
+@media (max-width: 991px) {
+  .navbar-wrapper {
+    justify-content: space-between;
+    align-items: center;
+  }
+  .header-middle {
+    position: static;
+    inset: auto;
+    display: flex;
+    align-items: center;
+    pointer-events: auto;
+    z-index: auto;
+    flex-shrink: 0;
+  }
+}
+
+/* Nav link underline: hidden by default, shown on hover/current */
+.header-nav-link-line {
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.3s ease;
+}
+.header-nav-link:hover .header-nav-link-line,
+.header-nav-link.w--current .header-nav-link-line {
+  transform: scaleX(1);
+}
+
+/* ─── Badge marquee: continuous scroll. Two .badge-marquee-inner duplicates translate
+   by -100% of their own width simultaneously. When both reach -100%, the animation
+   loops and Inner1 snaps back to 0 while Inner2 snaps back to its natural position —
+   the visible content is identical at the loop boundary so no jump is perceived. ─── */
+@keyframes badge-marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-100%); }
+}
+.badge-marquee-inner {
+  animation: badge-marquee 22s linear infinite;
+}
+
+/* ─── Footer marquee: same continuous-scroll pattern with 3 inner duplicates ─── */
+@keyframes footer-marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-100%); }
+}
+.footer-marquee-inner {
+  animation: footer-marquee 18s linear infinite;
+}
+
+/* ─── Scroll-reveal animation (matches Webflow IX2: 60px fade-up, outExpo curve) ─── */
+.reveal {
+  opacity: 0;
+  transform: translateY(60px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ─── Product page: size/color option buttons ─── */
+.product-option-button-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.product-size-btn {
+  border: 1px solid var(--_color---black);
+  background-color: var(--_color---white);
+  color: var(--_color---black);
+  padding: 9px 20px;
+  min-width: 44px;
+  font-size: var(--_font-sizes---body-text);
+  font-family: var(--_font-family---font-famity-body);
+  font-weight: var(--_font-weight---medium);
+  letter-spacing: var(--_letter-spacing---letter-space-3);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  line-height: 1;
+}
+.product-size-btn.active,
+.product-size-btn:hover {
+  background-color: var(--_color---black);
+  color: var(--_color---white);
+}
+
+/* ─── Product gallery: first image spans full width of 2-col grid ─── */
+.product-lightbox-wrapper .product-lightbox:first-child {
+  grid-column: 1 / -1;
+}
+
+/* ─── Mobile: product gallery collapses to single column ─── */
+@media (max-width: 767px) {
+  .product-lightbox-wrapper {
+    grid-template-columns: 1fr;
+  }
+  .product-lightbox-wrapper .product-lightbox:first-child {
+    grid-column: auto;
+  }
+}
+
+/* ─── Mobile: product option buttons ─── */
+@media (max-width: 479px) {
+  .product-size-btn {
+    padding: 7px 14px;
+    min-width: 36px;
+    font-size: 14px;
+  }
+}
+
+/* ─── Related products slider: multiple items visible ─── */
+/* Desktop: 4 items; Tablet: 2 items; Mobile: 1 item.
+   Scoped to #relatedSlider so the homepage product slider (mask-width approach) is unaffected.
+   webflow.css sets .product-slider-mask{width:calc(33.33%-30px)} (per-slot sizing for Webflow JS).
+   Override to 100% so the flex track fills the container and slide % widths resolve correctly. */
+#relatedSlider .product-slider-mask {
+  width: 100%;
+}
+#relatedSlider .product-slider-item {
+  flex-shrink: 0;
+  width: 25%;
+  margin-left: 0;
+  margin-right: 0;
+  padding-right: 20px;
+  box-sizing: border-box;
+}
+@media (max-width: 991px) {
+  #relatedSlider .product-slider-item {
+    width: 50%;
+  }
+}
+@media (max-width: 479px) {
+  #relatedSlider .product-slider-item {
+    width: 100%;
+    padding-right: 0;
+  }
+}
+
+/* ─── Category cards: initial states + hover interactions (replaces Webflow IX2) ─── */
+/* IX2 sets these as inline styles; we apply them via CSS so the hover transitions work */
+.category-serial-number { opacity: 0.65; }
+.product-amount-text    { opacity: 0.6; }
+
+/* Thumbnail hidden by default, revealed on hover */
+.category-thumbnail-block {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+/* Ensure the img fills the 80×80px container */
+.category-thumbnail {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Arrow: long arrow starts off-screen left; short arrow starts centered.
+   Both clipped by overflow:hidden on .category-arrow (already in webflow.css). */
+.category-card-block {
+  transition: background-color 0.35s ease;
+}
+.link-icon.two { transform: translateX(-24px); transition: transform 0.35s ease; }
+.link-icon.one { transform: translateX(0px);   transition: transform 0.35s ease; }
+
+/* Hover state */
+.category-card-block:hover { background-color: #d4cbbf; }
+.category-card-block:hover .category-thumbnail-block { opacity: 1; }
+.category-card-block:hover .link-icon.two { transform: translateX(0); }
+.category-card-block:hover .link-icon.one { transform: translateX(24px); }
+
+/* ─── Search page ─── */
+.search-page-form {
+  margin-bottom: 48px;
+}
+
+/* Centered search bar: full-width input with inset icon button */
+.search-page-bar {
+  position: relative;
+  max-width: 680px;
+  margin: 0 auto;
+}
+.search-page-bar-input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 58px;
+  border: 1.5px solid var(--_color---neutral-400);
+  border-radius: var(--_border-radius---radius-l);
+  background-color: var(--_color---white);
+  padding: 16px 64px 16px 24px;
+  font-size: var(--_font-sizes---body-text);
+  font-family: var(--_font-family---font-famity-body);
+  color: var(--_color---black);
+  margin-bottom: 0;
+  outline: none;
+  transition: border-color 0.2s ease;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.search-page-bar-input:focus {
+  border-color: var(--_color---black);
+}
+.search-page-bar-input::placeholder {
+  color: var(--_color---neutral-500);
+}
+/* Hide browser's built-in clear/cancel button on search inputs */
+.search-page-bar-input::-webkit-search-decoration,
+.search-page-bar-input::-webkit-search-cancel-button { display: none; }
+
+.search-page-bar-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 58px;
+  height: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--_color---black);
+  padding: 0;
+  transition: opacity 0.2s ease;
+}
+.search-page-bar-btn:hover { opacity: 0.5; }
+
+.search-empty-state {
+  padding: 40px 0;
+  color: var(--_color---neutral-700, #666);
+  font-size: 16px;
+}
+.search-empty-state a {
+  color: var(--_color---black);
+  text-decoration: underline;
+}
+/* search-results-section: CommonHero already provides the top section,
+   so skip the 123px padding-top from .search-section in webflow.css */
+.search-results-section {
+  padding-top: 0;
+}
+
+/* ─── Checkout page ─── */
+.checkout-area {
+  background-color: var(--_color---neutral-200);
+}
+.checkout-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+}
+.checkout-main {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Block cards */
+.checkout-block {
+  background-color: var(--_color---white);
+  border: 1px solid var(--_color---neutral-400);
+  margin-bottom: 20px;
+}
+.checkout-block:last-child { margin-bottom: 0; }
+
+.checkout-block-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--_color---neutral-400);
+}
+.checkout-block-title {
+  font-family: var(--_font-family---font-primary);
+  font-size: 16px;
+  font-weight: var(--_font-weight---semi-bold);
+  color: var(--_color---black);
+  margin: 0;
+  line-height: 1.3;
+}
+.checkout-req-note {
+  font-size: 12px;
+  color: var(--_color---neutral-600);
+}
+.checkout-block-body {
+  padding: 24px;
+}
+
+/* Fields */
+.checkout-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.checkout-field.no-mb { margin-bottom: 0; }
+.checkout-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.checkout-row .checkout-field { margin-bottom: 0; }
+
+.checkout-label {
+  font-size: 11px;
+  font-weight: var(--_font-weight---semi-bold);
+  color: var(--_color---neutral-700, #555);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.checkout-input {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  height: 46px;
+  background-color: var(--_color---neutral-150);
+  border: 1px solid var(--_color---neutral-400);
+  border-radius: var(--_border-radius---radius-xs);
+  padding: 0 14px;
+  font-size: var(--_font-sizes---body-text-small);
+  font-family: var(--_font-family---font-famity-body);
+  color: var(--_color---black);
+  outline: none;
+  margin: 0;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+.checkout-input:focus {
+  border-color: var(--_color---black);
+  background-color: var(--_color---white);
+}
+.checkout-input::placeholder { color: var(--_color---neutral-500); }
+.checkout-select { cursor: pointer; }
+
+/* Billing toggle */
+.checkout-billing-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--_color---neutral-400);
+}
+.checkout-checkbox { width: 16px; height: 16px; flex-shrink: 0; cursor: pointer; accent-color: var(--_color---black); }
+.checkout-checkbox-label { font-size: 14px; color: var(--_color---neutral-700, #555); cursor: pointer; }
+
+/* Cart items list inside checkout */
+.checkout-item {
+  display: flex;
+  gap: 14px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--_color---neutral-400);
+  align-items: flex-start;
+}
+.checkout-item:first-child { padding-top: 0; }
+.checkout-item:last-child  { border-bottom: none; padding-bottom: 0; }
+.checkout-item-thumb {
+  width: 60px;
+  height: 75px;
+  object-fit: cover;
+  flex-shrink: 0;
+  display: block;
+  background: var(--_color---neutral-300);
+}
+.checkout-item-info { flex: 1; min-width: 0; }
+.checkout-item-name {
+  font-size: 14px;
+  font-weight: var(--_font-weight---medium);
+  color: var(--_color---black);
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+.checkout-item-meta { font-size: 12px; color: var(--_color---neutral-600); margin-bottom: 2px; }
+.checkout-item-price {
+  font-size: 14px;
+  font-weight: var(--_font-weight---medium);
+  color: var(--_color---black);
+  white-space: nowrap;
+  padding-top: 2px;
+}
+.checkout-empty-cart { font-size: 14px; color: var(--_color---neutral-600); margin: 0; }
+.checkout-empty-cart a { color: var(--_color---black); text-decoration: underline; }
+
+/* Sidebar */
+.checkout-sidebar {
+  flex: 0 0 340px;
+  position: sticky;
+  top: 120px;
+}
+.checkout-summary-block { margin-bottom: 16px; }
+
+.checkout-summary-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  color: var(--_color---black);
+  padding: 7px 0;
+}
+.checkout-free { color: var(--_color---success, #14854e); font-weight: var(--_font-weight---medium); }
+.checkout-summary-divider {
+  height: 1px;
+  background: var(--_color---neutral-400);
+  margin: 8px 0;
+}
+.checkout-summary-total {
+  font-size: 16px;
+  padding-top: 10px;
+}
+.checkout-place-order {
+  width: 100%;
+  justify-content: center;
+}
+
+/* Tablet: stack columns */
+@media (max-width: 991px) {
+  .checkout-layout { flex-direction: column; }
+  .checkout-sidebar { flex: none; width: 100%; position: static; order: -1; }
+}
+/* Mobile: single-column rows */
+@media (max-width: 479px) {
+  .checkout-row { grid-template-columns: 1fr; }
+  .checkout-block-body { padding: 16px; }
+  .checkout-block-header { padding: 14px 16px; }
+}
+
+/* page-top-gap: compensate for absolute-positioned header on desktop */
+.page-top-gap {
+  padding-top: 150px;
+}
+@media (max-width: 991px) {
+  .page-top-gap {
+    padding-top: 24px;
+  }
+}
+@media (max-width: 767px) {
+  .page-top-gap {
+    padding-top: 24px;
+  }
+  .product-details-section.page-top-gap {
+    padding-top: 80px;
+  }
+}
+@media (max-width: 479px) {
+  .page-top-gap {
+    padding-top: 24px;
+  }
+  .product-details-section.page-top-gap {
+    padding-top: 80px;
+  }
+}

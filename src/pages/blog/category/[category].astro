@@ -1,0 +1,60 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Header from '@/components/layout/Header.astro';
+import Footer from '@/components/layout/Footer.astro';
+import CommonHero from '@/components/ui/CommonHero.astro';
+import BlogCard from '@/components/sections/BlogCard.astro';
+import { blogCategories, getPostsByCategory } from '@/data/blog';
+
+interface Props {
+  category: string;
+}
+
+export const getStaticPaths = () => {
+  const cats = blogCategories.filter((c) => c !== 'All');
+  return cats.map((cat) => ({
+    params: { category: cat.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and') },
+    props: { category: cat },
+  }));
+};
+
+const { category } = Astro.props;
+const categorySlug = category.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and');
+const filteredPosts = getPostsByCategory(categorySlug);
+---
+
+<BaseLayout title={`${category} — Dojeen Blog`} description={`Browse all ${category} articles on the Dojeen blog.`}>
+  <Header variant="default" />
+  <main class="main-wrapper">
+
+    <CommonHero subtitle="Blog Category" title={category} />
+
+    <section class="blog-section">
+      <div class="section-gap-bottom">
+        <div class="w-layout-blockcontainer container-default w-container">
+          {filteredPosts.length > 0 ? (
+            <div class="blog-collection-list">
+              {filteredPosts.map((post) => (
+                <div class="blog-collection-item">
+                  <BlogCard post={post} headingTag="h3" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div class="empty-state">
+              <p>No posts found in this category.</p>
+              <a href="/blog" class="primary-button w-inline-block">
+                <div class="button-text-block">
+                  <div class="button-text">Back to Blog</div>
+                </div>
+                <div class="button-bg"></div>
+              </a>
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+
+  </main>
+  <Footer />
+</BaseLayout>

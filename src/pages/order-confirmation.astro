@@ -1,0 +1,51 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Header from '@/components/layout/Header.astro';
+import Footer from '@/components/layout/Footer.astro';
+---
+
+<BaseLayout title="Order Confirmed — Dojeen" description="Your order has been confirmed." noIndex={true}>
+  <Header variant="default" />
+  <main class="main-wrapper">
+
+    <section class="order-confirmation-section">
+      <div class="section-gap">
+        <div class="w-layout-blockcontainer container-default w-container">
+          <div class="order-confirmation-wrapper">
+            <div class="order-confirmation-icon-block">
+              <div class="order-confirmation-check">&#10003;</div>
+            </div>
+            <h1 class="order-confirmation-title">Order Confirmed!</h1>
+            <p class="order-confirmation-excerpt">Thank you for your purchase. Your order has been received and is being processed. You'll receive a confirmation email shortly.</p>
+            <div class="order-confirmation-info-block">
+              <div class="order-info-item">
+                <div class="order-info-label">Order Status</div>
+                <div class="order-info-value">Processing</div>
+              </div>
+              <div class="order-info-item">
+                <div class="order-info-label">Estimated Delivery</div>
+                <div class="order-info-value">3–7 Business Days</div>
+              </div>
+            </div>
+            <div class="button-wrapper center">
+              <a href="/shop" class="primary-button w-inline-block">
+                <div class="button-text-block">
+                  <div class="button-text">Continue Shopping</div>
+                </div>
+                <div class="button-bg"></div>
+              </a>
+              <a href="/" class="secondary-button w-inline-block">
+                <div class="button-text-block">
+                  <div class="button-text">Back to Home</div>
+                </div>
+                <div class="button-bg secondary"></div>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+  <Footer />
+</BaseLayout>

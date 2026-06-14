@@ -1,0 +1,34 @@
+---
+interface Props {
+  subtitle: string;
+  title: string;
+  excerpt?: string;
+  excerptClass?: string;
+  bgVariant?: 'one' | 'two';
+  center?: boolean;
+  titleBlockClass?: string;
+  sectionClass?: string;
+}
+
+const { subtitle, title, excerpt, excerptClass, bgVariant, center, titleBlockClass, sectionClass } = Astro.props;
+---
+
+<section class={`common-hero-section${sectionClass ? ' ' + sectionClass : ''}`}>
+  <div class="w-layout-blockcontainer container-fluid w-container">
+    <div class={`common-hero-wrapper${bgVariant ? ` bg-${bgVariant}` : ''}`}>
+      <div class="common-hero-inner-block">
+        <div class="w-layout-blockcontainer common-hero-container w-container">
+          <div class={`common-hero-content-block${center ? ' center' : ''}`}>
+            <div class={`common-hero-title-block${titleBlockClass ? ' ' + titleBlockClass : ''}`}>
+              <div class="common-hero-subtitle reveal">{subtitle}</div>
+              <h1 class="common-hero-title reveal">{title}</h1>
+            </div>
+            {excerpt && (
+              <p class={`coomon-hero-excerpt${excerptClass ? ' ' + excerptClass : ''} reveal`}>{excerpt}</p>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

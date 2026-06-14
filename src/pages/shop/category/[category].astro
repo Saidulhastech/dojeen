@@ -1,0 +1,66 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Header from '@/components/layout/Header.astro';
+import Footer from '@/components/layout/Footer.astro';
+import CommonHero from '@/components/ui/CommonHero.astro';
+import ProductCard from '@/components/sections/ProductCard.astro';
+import { categories } from '@/data/categories';
+import { getProductsByCategory } from '@/data/products';
+import type { Category } from '@/types';
+
+interface Props {
+  category: Category;
+}
+
+export const getStaticPaths = () => {
+  return categories.map((cat) => ({
+    params: { category: cat.slug },
+    props: { category: cat },
+  }));
+};
+
+const { category } = Astro.props;
+const categoryProducts = getProductsByCategory(category.slug);
+---
+
+<BaseLayout title={`${category.name} — Dojeen Shop`} description={`Browse our ${category.name} collection.`}>
+  <Header variant="default" />
+  <main class="main-wrapper">
+
+    <CommonHero subtitle="Category" title={category.name} />
+
+    <section class="shop-section">
+      <div class="section-gap-bottom">
+        <div class="w-layout-blockcontainer container-default w-container">
+          <div class="shop-products-header">
+            <div class="shop-product-count">{categoryProducts.length} Products</div>
+            <a href="/shop" class="shop-back-link">← All Products</a>
+          </div>
+          {categoryProducts.length > 0 ? (
+            <div class="product-grid">
+              {categoryProducts.map((product) => (
+                <div class="product-collection-item">
+                  <div class="product-card-block">
+                    <ProductCard product={product} headingTag="h3" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div class="empty-state">
+              <p>No products found in this category.</p>
+              <a href="/shop" class="primary-button w-inline-block">
+                <div class="button-text-block">
+                  <div class="button-text">Browse All</div>
+                </div>
+                <div class="button-bg"></div>
+              </a>
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+
+  </main>
+  <Footer />
+</BaseLayout>

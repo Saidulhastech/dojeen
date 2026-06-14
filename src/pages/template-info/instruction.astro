@@ -1,0 +1,175 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Header from '@/components/layout/Header.astro';
+import Footer from '@/components/layout/Footer.astro';
+import CommonHero from '@/components/ui/CommonHero.astro';
+---
+
+<BaseLayout title="Instruction — Dojeen" description="Template setup and customization instructions for the Dojeen template." noIndex={true}>
+  <Header variant="default" />
+  <main class="main-wrapper">
+
+    <CommonHero subtitle="Instruction" title="Get Started with the Template" />
+
+    <section class="style-guide-section">
+      <div class="section-gap">
+        <div class="w-layout-blockcontainer container-default w-container">
+
+          <div class="instruction-tabs-wrapper">
+            <!-- Tab Menu -->
+            <div class="instruction-tab-menu" id="instructionTabMenu">
+              <button class="instruction-tab-menu-link active" data-tab="colors-typography">Change Colors &amp; Typography</button>
+              <button class="instruction-tab-menu-link" data-tab="text-images">Edit Text &amp; Images</button>
+              <button class="instruction-tab-menu-link" data-tab="svg-icons">Use Custom SVG Icons</button>
+              <button class="instruction-tab-menu-link" data-tab="animations">Customize Animations &amp; Interactions</button>
+              <button class="instruction-tab-menu-link" data-tab="seo">SEO &amp; Meta Settings</button>
+              <button class="instruction-tab-menu-link" data-tab="lottie">Using Lottie File</button>
+              <button class="instruction-tab-menu-link" data-tab="gsap">GSAP Customization</button>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="instruction-tab-content">
+
+              <div class="instruction-tab-pane active" data-pane="colors-typography">
+                <div class="instruction-details w-richtext">
+                  <h2>How to Update Variables</h2>
+                  <ol>
+                    <li><strong>Open your project in the editor.</strong></li>
+                    <li><strong>Access the Variables panel:</strong>
+                      <ul>
+                        <li>Select the Variables icon in the Style panel.</li>
+                        <li>Or open Style Manager and switch to the <strong>Variables</strong> tab.</li>
+                      </ul>
+                    </li>
+                    <li><strong>Browse your variable groups</strong> such as color and typography. You'll find items like <code>--Primary Color</code> or <code>--Heading Font Size</code>.</li>
+                    <li><strong>Select any variable to change its value.</strong> Once updated, the change applies instantly across all elements that use that variable.</li>
+                    <li><strong>Optional:</strong> You can still adjust colors or typography on individual elements directly from the Style panel.</li>
+                  </ol>
+                </div>
+              </div>
+
+              <div class="instruction-tab-pane" data-pane="text-images" style="display:none">
+                <div class="instruction-details w-richtext">
+                  <h2>How to Update Text and Images</h2>
+                  <h3>Updating Text</h3>
+                  <ol>
+                    <li><strong>Select the text element on the canvas.</strong> Click once to highlight the text field.</li>
+                    <li><strong>Enter edit mode.</strong> Click again or press <strong>Enter</strong> to start editing.</li>
+                    <li><strong>Type your new content.</strong> You can add, remove, or rewrite anything directly in place.</li>
+                    <li><strong>Apply styling if needed</strong> using the Style panel.</li>
+                  </ol>
+                  <h3>Updating Images</h3>
+                  <ol>
+                    <li><strong>Click the image you want to replace.</strong></li>
+                    <li><strong>Open the Settings panel</strong> using the gear icon in the right sidebar.</li>
+                    <li><strong>Choose "Replace Image."</strong></li>
+                    <li><strong>Upload a new file</strong> or select an existing image from the Assets panel.</li>
+                    <li><strong>The new image updates instantly</strong> across the canvas.</li>
+                  </ol>
+                </div>
+              </div>
+
+              <div class="instruction-tab-pane" data-pane="svg-icons" style="display:none">
+                <div class="instruction-details w-richtext">
+                  <h2>How to Use Custom SVG Icons</h2>
+                  <ol>
+                    <li><strong>Find the icon element</strong> you want to replace on the canvas.</li>
+                    <li><strong>Open the Settings panel</strong> for that element.</li>
+                    <li><strong>Locate the SVG embed block</strong> — the icon markup lives inside an HTML embed element.</li>
+                    <li><strong>Paste your new SVG code</strong> into the embed block, replacing the old SVG markup.</li>
+                    <li><strong>Save and publish.</strong> The new icon appears immediately.</li>
+                  </ol>
+                </div>
+              </div>
+
+              <div class="instruction-tab-pane" data-pane="animations" style="display:none">
+                <div class="instruction-details w-richtext">
+                  <h2>Customize Animations &amp; Interactions</h2>
+                  <ol>
+                    <li><strong>Select the element</strong> that has an animation or interaction.</li>
+                    <li><strong>Open the Interactions panel</strong> (the lightning bolt icon in the right sidebar).</li>
+                    <li><strong>View existing triggers</strong> — hover, click, scroll into view, page load, etc.</li>
+                    <li><strong>Edit or remove actions</strong> within each trigger sequence.</li>
+                    <li><strong>Add new interactions</strong> by clicking the + button next to a trigger.</li>
+                    <li><strong>Adjust timing, easing, and targets</strong> as needed.</li>
+                  </ol>
+                </div>
+              </div>
+
+              <div class="instruction-tab-pane" data-pane="seo" style="display:none">
+                <div class="instruction-details w-richtext">
+                  <h2>SEO &amp; Meta Settings</h2>
+                  <ol>
+                    <li><strong>Open the Page Settings</strong> for each page (gear icon in the Pages panel).</li>
+                    <li><strong>Fill in the SEO Title</strong> — keep it under 60 characters.</li>
+                    <li><strong>Write the Meta Description</strong> — aim for 150–160 characters.</li>
+                    <li><strong>Set the Open Graph image</strong> for rich social sharing previews.</li>
+                    <li><strong>Enable/disable indexing</strong> via the "Exclude from search results" checkbox.</li>
+                    <li><strong>For the homepage</strong>, also update the site-level SEO settings.</li>
+                  </ol>
+                </div>
+              </div>
+
+              <div class="instruction-tab-pane" data-pane="lottie" style="display:none">
+                <div class="instruction-details w-richtext">
+                  <h2>Using Lottie Files</h2>
+                  <ol>
+                    <li><strong>Find the Lottie element</strong> in the canvas (used for the hamburger icon animation).</li>
+                    <li><strong>Select the element</strong> and open the Settings panel.</li>
+                    <li><strong>Locate the "Lottie Animation" source field.</strong></li>
+                    <li><strong>Replace the JSON file URL</strong> with your own Lottie animation file URL.</li>
+                    <li><strong>Adjust playback settings</strong> — loop, autoplay, direction, and speed — as needed.</li>
+                  </ol>
+                </div>
+              </div>
+
+              <div class="instruction-tab-pane" data-pane="gsap" style="display:none">
+                <div class="instruction-details w-richtext">
+                  <h2>GSAP Customization</h2>
+                  <p>The Dojeen template uses GSAP 3 + ScrollTrigger for scroll-based reveal animations.</p>
+                  <ol>
+                    <li><strong>Find the custom code block</strong> in your page or site settings that loads GSAP.</li>
+                    <li><strong>Locate the animation definitions</strong> — typically using <code>gsap.from()</code> or <code>gsap.to()</code> with <code>ScrollTrigger</code>.</li>
+                    <li><strong>Adjust the target selector, duration, ease, and properties</strong> to match your design needs.</li>
+                    <li><strong>Use <code>scrub: true</code></strong> for scroll-linked animations, or remove it for trigger-based animations.</li>
+                    <li><strong>Test responsiveness</strong> — use <code>ScrollTrigger.matchMedia()</code> to apply different animations on mobile vs. desktop.</li>
+                  </ol>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+  <Footer />
+</BaseLayout>
+
+<script is:inline>
+  (function () {
+    var menu = document.getElementById('instructionTabMenu');
+    if (!menu) return;
+    var buttons = menu.querySelectorAll('.instruction-tab-menu-link');
+    var panes = document.querySelectorAll('.instruction-tab-pane');
+
+    buttons.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var target = btn.getAttribute('data-tab');
+        buttons.forEach(function (b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        panes.forEach(function (pane) {
+          if (pane.getAttribute('data-pane') === target) {
+            pane.style.display = '';
+            pane.classList.add('active');
+          } else {
+            pane.style.display = 'none';
+            pane.classList.remove('active');
+          }
+        });
+      });
+    });
+  })();
+</script>

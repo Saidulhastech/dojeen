@@ -1,0 +1,159 @@
+---
+import { footerQuickLinks, footerUtilityLinks } from '@/data/nav';
+---
+
+<footer class="footer">
+  <div class="footer-upper-block">
+    <div class="w-layout-blockcontainer container-default w-container">
+      <div class="footer-contant-wrapper">
+        <!-- Get In Touch -->
+        <div class="footer-about-wrapper">
+          <div class="footer-heading">Get In Touch</div>
+          <div class="footer-contact-info-list">
+            <div class="footer-contact-info-list-item">
+              <img src="/images/footer-icon-1.svg" loading="lazy" alt="Phone Icon" class="footer-contact-icon" />
+              <a href="tel:(+00)123456789" class="footer-contact-link">(+00) 123 456 789</a>
+            </div>
+            <div class="footer-contact-info-list-item">
+              <img src="/images/footer-icon-2.svg" loading="lazy" alt="Email Icon" class="footer-contact-icon" />
+              <a href="mailto:support@example.com?subject=Contact" class="footer-contact-link">support@example.com</a>
+            </div>
+            <div class="footer-contact-info-list-item">
+              <img src="/images/footer-icon-3.svg" loading="lazy" alt="Address Icon" class="footer-contact-icon" />
+              <div class="footer-contact-text">Elgin St. Celina, Delaware 10299</div>
+            </div>
+          </div>
+          <div class="footer-social-link-wrapper">
+            <a href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer" class="footer-social-link-block w-inline-block" aria-label="Facebook">
+              <div class="footer-social-link w-embed">
+                <svg xmlns="http://www.w3.org/2000/svg" width="7" height="12.6" viewBox="0 0 10 18" fill="none">
+                  <path d="M9.34475 10.0485L9.86301 6.81553H6.621V4.71753C6.621 3.83304 7.07388 2.97087 8.52598 2.97087H10V0.218447C10 0.218447 8.66228 0 7.38333 0C4.7132 0 2.96804 1.54835 2.96804 4.35146V6.81553H0V10.0485H2.96804V17.8641C3.5632 17.9534 4.17315 18 4.79452 18C5.41589 18 6.02585 17.9534 6.621 17.8641V10.0485H9.34475Z" fill="currentColor" />
+                </svg>
+              </div>
+            </a>
+            <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" class="footer-social-link-block w-inline-block" aria-label="Instagram">
+              <div class="footer-social-link w-embed">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 15 14" fill="none">
+                  <g clip-path="url(#footer-ig)">
+                    <path d="M11.0806 0H4.08073C2.15594 0 0.580811 1.57513 0.580811 3.49991V10.5001C0.580811 12.4244 2.15594 14 4.08073 14H11.0806C13.0053 14 14.5805 12.4244 14.5805 10.5001V3.49991C14.5805 1.57513 13.0053 0 11.0806 0ZM13.4138 10.5001C13.4138 11.7863 12.3675 12.8333 11.0806 12.8333H4.08073C2.79434 12.8333 1.74751 11.7863 1.74751 10.5001V3.49991C1.74751 2.21335 2.79434 1.1667 4.08073 1.1667H11.0806C12.3675 1.1667 13.4138 2.21335 13.4138 3.49991V10.5001Z" fill="currentColor" />
+                    <path d="M11.3735 4.08297C11.8568 4.08297 12.2485 3.69122 12.2485 3.20799C12.2485 2.72475 11.8568 2.33301 11.3735 2.33301C10.8903 2.33301 10.4985 2.72475 10.4985 3.20799C10.4985 3.69122 10.8903 4.08297 11.3735 4.08297Z" fill="currentColor" />
+                    <path d="M7.58048 3.49994C5.64712 3.49994 4.08057 5.06666 4.08057 6.99985C4.08057 8.93233 5.64712 10.5001 7.58048 10.5001C9.51329 10.5001 11.0804 8.93233 11.0804 6.99985C11.0804 5.06666 9.51329 3.49994 7.58048 3.49994ZM7.58048 9.33342C6.29197 9.33342 5.24726 8.2887 5.24726 6.99985C5.24726 5.711 6.29197 4.66663 7.58048 4.66663C8.86899 4.66663 9.9137 5.711 9.9137 6.99985C9.9137 8.2887 8.86899 9.33342 7.58048 9.33342Z" fill="currentColor" />
+                  </g>
+                  <defs>
+                    <clipPath id="footer-ig"><rect width="20" height="20" fill="white" transform="translate(0.580566)" /></clipPath>
+                  </defs>
+                </svg>
+              </div>
+            </a>
+            <a href="https://www.tiktok.com/" target="_blank" rel="noopener noreferrer" class="footer-social-link-block w-inline-block" aria-label="TikTok">
+              <div class="footer-social-link w-embed">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 13 14" fill="none">
+                  <path d="M12.8666 3.51068C12.0676 3.51068 11.3304 3.24599 10.7384 2.79947C10.0595 2.2876 9.57165 1.53674 9.39939 0.671306C9.35673 0.457478 9.33376 0.236814 9.33158 0.0106812H7.04919V6.24724L7.04646 9.6633C7.04646 10.5766 6.45173 11.351 5.62732 11.6233C5.38806 11.7023 5.12966 11.7398 4.8606 11.725C4.51716 11.7061 4.19533 11.6025 3.9156 11.4352C3.32033 11.0792 2.91673 10.4333 2.9058 9.69447C2.88857 8.53974 3.82208 7.5983 4.97599 7.5983C5.20376 7.5983 5.42251 7.63549 5.62732 7.70302V5.99842V5.38564C5.4113 5.35365 5.19146 5.33697 4.96915 5.33697C3.70615 5.33697 2.5249 5.86197 1.68052 6.80779C1.04232 7.52256 0.659506 8.43447 0.600444 9.39068C0.523061 10.6469 0.982709 11.841 1.87412 12.722C2.00509 12.8513 2.14263 12.9713 2.28646 13.0821C3.05072 13.6703 3.98505 13.9891 4.96915 13.9891C5.19146 13.9891 5.4113 13.9727 5.62732 13.9407C6.54662 13.8045 7.39482 13.3837 8.06419 12.722C8.88669 11.909 9.34115 10.8298 9.34607 9.68107L9.33431 4.57982C9.72669 4.88252 10.1557 5.13299 10.6162 5.3274C11.3323 5.62955 12.0917 5.78267 12.8731 5.7824V3.51013C12.8737 3.51068 12.8671 3.51068 12.8666 3.51068Z" fill="currentColor" />
+                </svg>
+              </div>
+            </a>
+            <a href="https://x.com/" target="_blank" rel="noopener noreferrer" class="footer-social-link-block w-inline-block" aria-label="X (Twitter)">
+              <div class="footer-social-link w-embed">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 15" fill="none">
+                  <path d="M8.15051 6.41035L13.2476 0.485352H12.0398L7.61395 5.62995L4.07905 0.485352H0.00195312L5.34742 8.26489L0.00195312 14.4782H1.20988L5.88368 9.0453L9.61679 14.4782H13.6939L8.15022 6.41035H8.15051ZM6.49609 8.33343L5.95449 7.55876L1.64511 1.39466H3.50041L6.97813 6.36929L7.51974 7.14395L12.0404 13.6102H10.1851L6.49609 8.33373V8.33343Z" fill="currentColor" />
+                </svg>
+              </div>
+            </a>
+          </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="footer-column">
+          <div class="footer-heading">Quick Links</div>
+          <div class="footer-link-wrapper">
+            {footerQuickLinks.map((link) => (
+              <a href={link.href} class="footer-link">{link.label}</a>
+            ))}
+          </div>
+        </div>
+
+        <!-- Utility Pages -->
+        <div class="footer-column">
+          <div class="footer-heading">Utility Pages</div>
+          <div class="footer-link-wrapper">
+            {footerUtilityLinks.map((link) => (
+              <a href={link.href} class="footer-link">{link.label}</a>
+            ))}
+          </div>
+        </div>
+
+        <!-- Newsletter -->
+        <div class="footer-newsletter-block">
+          <div class="footer-heading">Newsletter</div>
+          <p class="footer-newsletter-text">Sign up for our newsletter to receive special offers.</p>
+          <div class="footer-form-block w-form">
+            <form id="footer-newsletter-form" class="footer-form" method="post">
+              <div class="footer-form-wrapper">
+                <input
+                  class="footer-input w-input"
+                  maxlength="256"
+                  name="email"
+                  placeholder="Enter Your Email"
+                  type="email"
+                  id="footer-email"
+                  required
+                />
+                <button type="submit" class="footer-submit-button w-button" aria-label="Submit"></button>
+              </div>
+              <label class="w-checkbox checkbox-field">
+                <input type="checkbox" name="terms" id="footer-terms" required />
+                <span class="checkbox-label w-form-label">I agree with the terms &amp; conditions</span>
+              </label>
+            </form>
+            <div class="success-message w-form-done" style="display:none">
+              <div>Thank you! You've been subscribed.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer marquee -->
+  <div class="footer-marquee">
+    <div class="footer-marquee-inner">
+      <div class="footer-marquee-text">Dojeen.</div>
+      <div class="footer-marquee-text">Dojeen.</div>
+      <div class="footer-marquee-text">Dojeen.</div>
+    </div>
+    <div class="footer-marquee-inner">
+      <div class="footer-marquee-text">Dojeen.</div>
+      <div class="footer-marquee-text">Dojeen.</div>
+      <div class="footer-marquee-text">Dojeen.</div>
+    </div>
+    <div class="footer-marquee-inner">
+      <div class="footer-marquee-text">Dojeen.</div>
+      <div class="footer-marquee-text">Dojeen.</div>
+      <div class="footer-marquee-text">Dojeen.</div>
+    </div>
+  </div>
+
+  <!-- Copyright -->
+  <div class="footer-copiright-block">
+    <div class="footer-copyright-text">
+      Copyright &copy; Dojeen. | Designed by{' '}
+      <a href="https://hasthemes.com/" target="_blank" rel="noopener noreferrer" class="footer-copyright-link">HasThemes</a>
+      {' '}- Powered by{' '}
+      <a href="https://astro.build" target="_blank" rel="noopener noreferrer" class="footer-copyright-link">Astro</a>
+    </div>
+  </div>
+</footer>
+
+<script is:inline>
+  (function () {
+    var form = document.getElementById('footer-newsletter-form');
+    if (form) {
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        form.style.display = 'none';
+        var success = form.nextElementSibling;
+        if (success) success.style.display = 'block';
+      });
+    }
+  })();
+</script>

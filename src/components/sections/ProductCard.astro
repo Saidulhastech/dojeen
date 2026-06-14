@@ -1,0 +1,121 @@
+---
+import type { Product } from '@/types';
+
+interface Props {
+  product: Product;
+  headingTag?: 'h2' | 'h3';
+}
+
+const { product, headingTag = 'h3' } = Astro.props;
+const HeadingTag = headingTag;
+const img3 = product.images[0] ?? product.thumbnail;
+
+const COLOR_MAP: Record<string, string> = {
+  'Black':      '#1a1a1a',
+  'White':      '#f5f5f5',
+  'Blue':       '#4a7ab5',
+  'Navy':       '#1b2a4a',
+  'Grey':       '#9e9e9e',
+  'Gray':       '#9e9e9e',
+  'Charcoal':   '#3d3d3d',
+  'Beige':      '#d4b896',
+  'Camel':      '#c19a6b',
+  'Cream':      '#f0e8d8',
+  'Ivory':      '#f2ead8',
+  'Sage':       '#87a96b',
+  'Sand':       '#c2b280',
+  'Blush':      '#e8a0a8',
+  'Dusty Blue': '#6a89a7',
+  'Dusty Rose': '#c07e7e',
+  'Natural':    '#d4c5a9',
+};
+
+function swatchColor(name: string): string {
+  return COLOR_MAP[name] ?? '#cccccc';
+}
+---
+
+<div class="product-tab-wrapper">
+    <div class="prouct-card-tab w-tabs" data-product-slug={product.slug}>
+      <div class="product-tab-content w-tab-content">
+        <div class="product-tab-pane w-tab-pane w--tab-active" data-tab="1">
+          <a href={`/products/${product.slug}`} class="product-thumbnail-block w-inline-block">
+            <img loading="lazy" src={`/images/${product.thumbnail}`} alt={product.name} class="product-main-thumbnail" />
+            <img loading="lazy" src={`/images/${product.thumbnailHover}`} alt={product.name} class="product-secondary-thumbnail" style="opacity:0" />
+          </a>
+        </div>
+        <div class="product-tab-pane w-tab-pane" data-tab="2">
+          <a href={`/products/${product.slug}`} class="product-thumbnail-block w-inline-block">
+            <img loading="lazy" src={`/images/${product.thumbnailHover}`} alt={product.name} class="product-main-thumbnail" />
+          </a>
+        </div>
+        <div class="product-tab-pane w-tab-pane" data-tab="3">
+          <a href={`/products/${product.slug}`} class="product-thumbnail-block w-inline-block">
+            <img loading="lazy" src={`/images/${img3}`} alt={product.name} class="product-main-thumbnail" />
+          </a>
+        </div>
+      </div>
+      <div class="product-tab-menu w-tab-menu">
+        <button class="product-tab-link w-inline-block w-tab-link w--current" data-target="1">
+          <div class="product-tab-block" style={`background-color:${swatchColor(product.colors[0] ?? '')}`}></div>
+        </button>
+        <button class="product-tab-link w-inline-block w-tab-link" data-target="2">
+          <div class="product-tab-block" style={`background-color:${swatchColor(product.colors[1] ?? '')}`}></div>
+        </button>
+        <button class="product-tab-link w-inline-block w-tab-link" data-target="3">
+          <div class="product-tab-block" style={`background-color:${swatchColor(product.colors[2] ?? '')}`}></div>
+        </button>
+      </div>
+    </div>
+    <div class="product-badge-wrapper">
+      {product.isOnSale && <div class="sale-badge">Sale</div>}
+      {(product.discount ?? 0) > 0 && <div class="discount-badge">-{product.discount}%</div>}
+    </div>
+  </div>
+  <div class="product-card-info-block">
+    <a href={`/products/${product.slug}`} class="product-link-block w-inline-block">
+      <HeadingTag class="product-name">{product.name}</HeadingTag>
+    </a>
+    <div class="product-card-pricing-block">
+      {product.isOnSale
+        ? (
+          <>
+            <div class="product-card-sale-price">${product.price.toFixed(2)}</div>
+            <div class="product-carrd-compare-price">${(product.comparePrice ?? product.price).toFixed(2)}</div>
+          </>
+        )
+        : (
+          <div class="product-card-discount-price">${product.price.toFixed(2)}</div>
+        )
+      }
+    </div>
+  </div>
+
+<script is:inline>
+  (function () {
+    function initProductTabs() {
+      document.querySelectorAll('.prouct-card-tab').forEach(function (tabWrapper) {
+        var tabs = tabWrapper.querySelectorAll('.product-tab-link');
+        var panes = tabWrapper.querySelectorAll('.product-tab-pane');
+
+        tabs.forEach(function (tab) {
+          tab.addEventListener('click', function (e) {
+            e.preventDefault();
+            var target = tab.getAttribute('data-target');
+            tabs.forEach(function (t) { t.classList.remove('w--current'); });
+            panes.forEach(function (p) { p.classList.remove('w--tab-active'); });
+            tab.classList.add('w--current');
+            var pane = tabWrapper.querySelector('.product-tab-pane[data-tab="' + target + '"]');
+            if (pane) pane.classList.add('w--tab-active');
+          });
+        });
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initProductTabs);
+    } else {
+      initProductTabs();
+    }
+  })();
+</script>
