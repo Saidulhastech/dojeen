@@ -1,0 +1,397 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Header from '@/components/layout/Header.astro';
+import Footer from '@/components/layout/Footer.astro';
+import CommonHero from '@/components/ui/CommonHero.astro';
+---
+
+<BaseLayout title="Cart — Dojeen" description="Review the items in your shopping cart before checkout.">
+  <Header variant="default" currentPath="/cart" />
+  <main class="main-wrapper">
+
+    <CommonHero subtitle="Shopping Cart" title="Your Cart" />
+
+    <div class="checkout-area">
+      <div class="section-gap">
+        <div class="w-layout-blockcontainer container-default w-container">
+
+          <div class="checkout-layout" id="cartLayout">
+
+            <!-- ── LEFT: cart items ── -->
+            <div class="checkout-main">
+              <div class="checkout-block">
+                <div class="checkout-block-header">
+                  <h2 class="checkout-block-title">Cart Items</h2>
+                  <span class="checkout-req-note" id="cartItemCount"></span>
+                </div>
+                <div class="checkout-block-body" id="cartItemsContainer">
+                  <!-- Items rendered by JS -->
+                </div>
+              </div>
+            </div>
+
+            <!-- ── RIGHT: sticky order summary ── -->
+            <div class="checkout-sidebar" id="cartSidebar">
+              <div class="checkout-block checkout-summary-block">
+                <div class="checkout-block-header">
+                  <h2 class="checkout-block-title">Order Summary</h2>
+                </div>
+                <div class="checkout-block-body">
+                  <div class="checkout-summary-line">
+                    <span>Subtotal</span>
+                    <span id="cartSubtotal">$0.00</span>
+                  </div>
+                  <div class="checkout-summary-line">
+                    <span>Shipping</span>
+                    <span class="checkout-free">Free</span>
+                  </div>
+                  <div class="checkout-summary-divider"></div>
+                  <div class="checkout-summary-line checkout-summary-total">
+                    <strong>Total</strong>
+                    <strong id="cartTotal">$0.00</strong>
+                  </div>
+                </div>
+              </div>
+
+              <a href="/checkout" class="primary-button w-inline-block checkout-place-order">
+                <div class="button-text-block">
+                  <div class="button-text">Proceed to Checkout</div>
+                </div>
+                <div class="button-bg"></div>
+              </a>
+              <a href="/shop" class="cart-continue-link">Continue Shopping</a>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+  <Footer />
+</BaseLayout>
+
+<!-- is:global required — cart rows are injected via JS innerHTML and don't receive Astro's scoped hash -->
+<style is:global>
+  .cart-page-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 18px;
+    padding: 24px 0;
+    border-bottom: 1px solid var(--_color---neutral-300);
+  }
+  .cart-page-item:first-child { padding-top: 0; }
+  .cart-page-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .cart-page-thumb-link {
+    flex-shrink: 0;
+    display: block;
+    border-radius: var(--_border-radius---radius-xs);
+    overflow: hidden;
+  }
+  .cart-page-thumb {
+    width: 90px;
+    height: 112px;
+    object-fit: cover;
+    display: block;
+    background: var(--_color---neutral-300);
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .cart-page-thumb-link:hover .cart-page-thumb { transform: scale(1.06); }
+  .cart-page-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .cart-page-name {
+    display: inline-block;
+    font-family: var(--_font-family---font-famity-heading);
+    font-size: var(--_font-sizes---body-text-large);
+    font-weight: var(--_font-weight---semi-bold);
+    color: var(--_color---black);
+    text-decoration: none;
+    margin-bottom: 6px;
+    line-height: 1.3;
+    transition: color 0.2s ease;
+  }
+  .cart-page-name:hover { color: var(--_color---red-500); }
+  .cart-page-meta {
+    font-size: var(--_font-sizes---body-text-small);
+    color: var(--_color---neutral-600);
+    margin-bottom: 2px;
+  }
+  .cart-page-unit-price {
+    font-size: var(--_font-sizes---body-text-small);
+    color: var(--_color---neutral-600);
+    margin-top: 6px;
+  }
+  .cart-page-remove {
+    background: none;
+    border: none;
+    padding: 0;
+    margin-top: 12px;
+    cursor: pointer;
+    font-family: var(--_font-family---font-famity-body);
+    font-size: var(--_font-sizes---body-text-small);
+    color: var(--_color---neutral-600);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    transition: color 0.2s ease;
+  }
+  .cart-page-remove:hover { color: var(--_color---red-500); }
+
+  /* Quantity stepper */
+  .cart-page-qty {
+    display: inline-flex;
+    align-items: stretch;
+    border: 1px solid var(--_color---neutral-400);
+    border-radius: var(--_border-radius---radius-l);
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .cart-page-qty-btn {
+    width: 38px;
+    border: none;
+    background: var(--_color---white);
+    color: var(--_color---black);
+    font-size: 17px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+  .cart-page-qty-btn:hover { background: var(--_color---black); color: var(--_color---white); }
+  .cart-page-qty-value {
+    min-width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: var(--_font-weight---medium);
+    border-left: 1px solid var(--_color---neutral-400);
+    border-right: 1px solid var(--_color---neutral-400);
+  }
+  .cart-page-line-total {
+    flex-shrink: 0;
+    min-width: 90px;
+    text-align: right;
+    font-family: var(--_font-family---font-famity-heading);
+    font-size: var(--_font-sizes---body-text-large);
+    font-weight: var(--_font-weight---semi-bold);
+    color: var(--_color---black);
+  }
+
+  /* Empty state */
+  .cart-page-empty {
+    text-align: center;
+    padding: 30px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+  }
+  .cart-page-empty-text {
+    font-size: var(--_font-sizes---body-text-large);
+    color: var(--_color---neutral-600);
+  }
+
+  /* Continue shopping link under the checkout button */
+  .cart-continue-link {
+    display: block;
+    text-align: center;
+    margin-top: 16px;
+    color: var(--_color---black);
+    font-size: var(--_font-sizes---body-text-small);
+    font-weight: var(--_font-weight---medium);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+  .cart-continue-link:hover { color: var(--_color---red-500); }
+
+  /* ── Mobile cart redesign ── */
+  @media (max-width: 767px) {
+    /* Tighter section padding */
+    .checkout-area .section-gap {
+      padding-top: 40px;
+      padding-bottom: 48px;
+    }
+
+    /* Rounded shadow cards instead of flat bordered boxes */
+    .checkout-block {
+      border-radius: 14px;
+      overflow: hidden;
+      border: none;
+      box-shadow: 0 2px 16px rgba(26, 23, 20, 0.08);
+    }
+
+    /* Order summary appears BELOW cart items on mobile */
+    .checkout-sidebar { order: 2; }
+
+    /* Full-width CTA with more presence */
+    .checkout-place-order {
+      padding: 16px 24px;
+      font-size: 15px;
+      letter-spacing: 0.04em;
+      border-radius: 10px;
+    }
+  }
+
+  /* ── Tighter block padding at small mobile ── */
+  @media (max-width: 479px) {
+    .checkout-block-header { padding: 16px 18px; }
+    .checkout-block-body   { padding: 18px; }
+    .checkout-block-title  { font-size: 15px; }
+  }
+
+  /* ── Cart item: 2-row grid at narrow widths ── */
+  @media (max-width: 575px) {
+    .cart-page-item {
+      display: grid;
+      grid-template-columns: 80px 1fr auto;
+      grid-template-rows: auto auto;
+      column-gap: 14px;
+      row-gap: 0;
+      align-items: start;
+      padding: 20px 0;
+    }
+    /* Image spans both rows */
+    .cart-page-thumb-link {
+      grid-column: 1;
+      grid-row: 1 / 3;
+      align-self: start;
+    }
+    .cart-page-thumb {
+      width: 80px;
+      height: 100px;
+    }
+    /* Info takes full width of columns 2-3 */
+    .cart-page-info {
+      grid-column: 2 / 4;
+      grid-row: 1;
+    }
+    /* Row 2: qty on left, price on right */
+    .cart-page-qty {
+      grid-column: 2;
+      grid-row: 2;
+      margin-top: 12px;
+      align-self: center;
+    }
+    .cart-page-line-total {
+      grid-column: 3;
+      grid-row: 2;
+      margin-top: 12px;
+      min-width: 0;
+      text-align: right;
+      align-self: center;
+    }
+    /* Compact the qty stepper */
+    .cart-page-qty-btn { width: 32px; }
+    .cart-page-qty-value { min-width: 32px; font-size: 14px; }
+
+    /* Tighter block padding */
+    .cart-page-name { font-size: 15px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cart-page-thumb { transition: none; }
+    .cart-page-thumb-link:hover .cart-page-thumb { transform: none; }
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    var container = document.getElementById('cartItemsContainer');
+    var sidebar = document.getElementById('cartSidebar');
+    var subtotalEl = document.getElementById('cartSubtotal');
+    var totalEl = document.getElementById('cartTotal');
+    var countEl = document.getElementById('cartItemCount');
+    if (!container) return;
+
+    function getCart() {
+      try { return JSON.parse(localStorage.getItem('dojeen_cart') || '[]'); } catch (e) { return []; }
+    }
+    function saveCart(items) {
+      localStorage.setItem('dojeen_cart', JSON.stringify(items));
+      window.dispatchEvent(new CustomEvent('cart:updated', { detail: { items: items } }));
+    }
+    function money(n) { return '$' + n.toFixed(2); }
+    function esc(s) {
+      return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+      });
+    }
+
+    function render() {
+      var items = getCart();
+
+      if (items.length === 0) {
+        container.innerHTML =
+          '<div class="cart-page-empty">' +
+            '<p class="cart-page-empty-text">Your cart is empty.</p>' +
+            '<a href="/shop" class="primary-button w-inline-block">' +
+              '<div class="button-text-block"><div class="button-text">Shop Now</div></div>' +
+              '<div class="button-bg"></div>' +
+            '</a>' +
+          '</div>';
+        if (sidebar) sidebar.style.display = 'none';
+        if (countEl) countEl.textContent = '';
+        return;
+      }
+
+      if (sidebar) sidebar.style.display = '';
+      var total = 0;
+      var count = 0;
+      container.innerHTML = items.map(function (item, idx) {
+        var line = item.price * item.quantity;
+        total += line;
+        count += item.quantity;
+        var href = '/products/' + (item.slug || '');
+        return (
+          '<div class="cart-page-item">' +
+            '<a href="' + href + '" class="cart-page-thumb-link">' +
+              '<img src="' + esc(item.image) + '" alt="' + esc(item.name) + '" class="cart-page-thumb" />' +
+            '</a>' +
+            '<div class="cart-page-info">' +
+              '<a href="' + href + '" class="cart-page-name">' + esc(item.name) + '</a>' +
+              (item.color ? '<div class="cart-page-meta">Color: ' + esc(item.color) + '</div>' : '') +
+              (item.size ? '<div class="cart-page-meta">Size: ' + esc(item.size) + '</div>' : '') +
+              '<div class="cart-page-unit-price">' + money(item.price) + ' each</div>' +
+              '<button type="button" class="cart-page-remove" data-action="remove" data-idx="' + idx + '">Remove</button>' +
+            '</div>' +
+            '<div class="cart-page-qty">' +
+              '<button type="button" class="cart-page-qty-btn" data-action="dec" data-idx="' + idx + '" aria-label="Decrease quantity">−</button>' +
+              '<span class="cart-page-qty-value">' + item.quantity + '</span>' +
+              '<button type="button" class="cart-page-qty-btn" data-action="inc" data-idx="' + idx + '" aria-label="Increase quantity">+</button>' +
+            '</div>' +
+            '<div class="cart-page-line-total">' + money(line) + '</div>' +
+          '</div>'
+        );
+      }).join('');
+
+      if (subtotalEl) subtotalEl.textContent = money(total);
+      if (totalEl) totalEl.textContent = money(total);
+      if (countEl) countEl.textContent = count + (count === 1 ? ' item' : ' items');
+
+      container.querySelectorAll('[data-action]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var cart = getCart();
+          var i = parseInt(btn.getAttribute('data-idx'), 10);
+          var action = btn.getAttribute('data-action');
+          if (!cart[i]) return;
+          if (action === 'inc') {
+            cart[i].quantity = (cart[i].quantity || 1) + 1;
+          } else if (action === 'dec') {
+            if (cart[i].quantity > 1) cart[i].quantity -= 1;
+            else cart.splice(i, 1);
+          } else if (action === 'remove') {
+            cart.splice(i, 1);
+          }
+          saveCart(cart);
+          render();
+        });
+      });
+    }
+
+    render();
+    window.addEventListener('cart:updated', render);
+  })();
+</script>

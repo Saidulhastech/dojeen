@@ -4,6 +4,7 @@ import Header from '@/components/layout/Header.astro';
 import Footer from '@/components/layout/Footer.astro';
 import ProductCard from '@/components/sections/ProductCard.astro';
 import { products } from '@/data/products';
+import { swatchColor, isLightSwatch } from '@/lib/colors';
 import type { GetStaticPaths } from 'astro';
 import type { Product } from '@/types';
 
@@ -185,14 +186,17 @@ const allImages = [product.thumbnail, product.thumbnailHover, ...product.images]
                   {product.colors.length > 0 && (
                     <div class="product-option">
                       <label class="product-option-label">Color: <span id="selectedColorLabel">{product.colors[0]}</span></label>
-                      <div class="product-option-button-group" id="colorSelector">
+                      <div class="product-option-button-group pdp-swatch-group" id="colorSelector" role="group" aria-label="Choose a color">
                         {product.colors.map((color, idx) => (
                           <button
-                            class={`product-size-btn${idx === 0 ? ' active' : ''}`}
+                            class={`pdp-color-swatch${idx === 0 ? ' active' : ''}${isLightSwatch(color) ? ' is-light' : ''}`}
                             data-color={color}
                             title={color}
+                            aria-label={color}
+                            aria-pressed={idx === 0 ? 'true' : 'false'}
+                            style={`--swatch:${swatchColor(color)}`}
                           >
-                            {color}
+                            <span class="visually-hidden">{color}</span>
                           </button>
                         ))}
                       </div>
@@ -235,13 +239,17 @@ const allImages = [product.thumbnail, product.thumbnailHover, ...product.images]
                 <div class="add-to-cart-button-wrapper">
                   <label for="productQty" class="product-option-label">Quantity</label>
                   <div class="product-add-to-cart-block">
-                    <input
-                      type="number"
-                      id="productQty"
-                      min="1"
-                      value="1"
-                      class="w-commerce-commerceaddtocartquantityinput quantity"
-                    />
+                    <div class="pdp-qty-stepper">
+                      <button type="button" class="pdp-qty-btn" id="qtyMinus" aria-label="Decrease quantity">&#8722;</button>
+                      <input
+                        type="number"
+                        id="productQty"
+                        min="1"
+                        value="1"
+                        class="w-commerce-commerceaddtocartquantityinput quantity"
+                      />
+                      <button type="button" class="pdp-qty-btn" id="qtyPlus" aria-label="Increase quantity">&#43;</button>
+                    </div>
                     <button
                       class="w-commerce-commerceaddtocartbutton add-to-card-button"
                       id="addToCartBtn"
@@ -251,6 +259,22 @@ const allImages = [product.thumbnail, product.thumbnailHover, ...product.images]
                   </div>
                   <a href="/checkout" class="w-commerce-commercebuynowbutton buy-now-button">Buy now</a>
                 </div>
+
+                <!-- Trust badges -->
+                <ul class="pdp-trust-row">
+                  <li class="pdp-trust-item">
+                    <img src="/images/feature-icon-1.svg" loading="lazy" alt="" class="pdp-trust-icon" />
+                    <span>Free worldwide shipping</span>
+                  </li>
+                  <li class="pdp-trust-item">
+                    <img src="/images/feature-icon-2.svg" loading="lazy" alt="" class="pdp-trust-icon" />
+                    <span>Secure checkout</span>
+                  </li>
+                  <li class="pdp-trust-item">
+                    <img src="/images/feature-icon-3.svg" loading="lazy" alt="" class="pdp-trust-icon" />
+                    <span>30-day easy returns</span>
+                  </li>
+                </ul>
               </div>
             </div>
 
@@ -300,6 +324,14 @@ const allImages = [product.thumbnail, product.thumbnailHover, ...product.images]
       </section>
     )}
 
+    <!-- Lightbox modal (vanilla JS, no dependency) -->
+    <div class="pdp-lightbox" id="pdpLightbox" role="dialog" aria-modal="true" aria-label="Product image viewer" aria-hidden="true">
+      <button type="button" class="pdp-lightbox-close" id="pdpLightboxClose" aria-label="Close image viewer">&#10005;</button>
+      <button type="button" class="pdp-lightbox-nav prev" id="pdpLightboxPrev" aria-label="Previous image">&#8249;</button>
+      <img src="" alt={product.name} class="pdp-lightbox-img" id="pdpLightboxImg" />
+      <button type="button" class="pdp-lightbox-nav next" id="pdpLightboxNext" aria-label="Next image">&#8250;</button>
+    </div>
+
   </main>
   <Footer />
 </BaseLayout>
@@ -331,20 +363,37 @@ const allImages = [product.thumbnail, product.thumbnailHover, ...product.images]
     if (firstBtn) selectedColor = firstBtn.getAttribute('data-color') || '';
     colorSelector.querySelectorAll<HTMLElement>('[data-color]').forEach((btn) => {
       btn.addEventListener('click', () => {
-        colorSelector!.querySelectorAll('[data-color]').forEach((b) => b.classList.remove('active'));
+        colorSelector!.querySelectorAll('[data-color]').forEach((b) => {
+          b.classList.remove('active');
+          b.setAttribute('aria-pressed', 'false');
+        });
         btn.classList.add('active');
+        btn.setAttribute('aria-pressed', 'true');
         selectedColor = btn.getAttribute('data-color') || '';
         if (colorLabel) colorLabel.textContent = selectedColor;
       });
     });
   }
 
+  // Quantity stepper
+  const qtyInputEl = document.getElementById('productQty') as HTMLInputElement | null;
+  function clampQty(v: number) { return Number.isFinite(v) && v >= 1 ? Math.floor(v) : 1; }
+  function setQty(v: number) { if (qtyInputEl) qtyInputEl.value = String(clampQty(v)); }
+  document.getElementById('qtyMinus')?.addEventListener('click', () => {
+    setQty(parseInt(qtyInputEl?.value || '1', 10) - 1);
+  });
+  document.getElementById('qtyPlus')?.addEventListener('click', () => {
+    setQty(parseInt(qtyInputEl?.value || '1', 10) + 1);
+  });
+  qtyInputEl?.addEventListener('change', () => setQty(parseInt(qtyInputEl.value || '1', 10)));
+
   // Add to cart
-  const addToCartBtn = document.getElementById('addToCartBtn');
+  const addToCartBtn = document.getElementById('addToCartBtn') as HTMLButtonElement | null;
   if (addToCartBtn) {
+    const defaultLabel = addToCartBtn.textContent || 'Add to Cart';
+    let resetTimer: number | undefined;
     addToCartBtn.addEventListener('click', () => {
-      const qtyInput = document.getElementById('productQty') as HTMLInputElement;
-      const qty = parseInt(qtyInput?.value || '1', 10);
+      const qty = clampQty(parseInt(qtyInputEl?.value || '1', 10));
       const slug = window.location.pathname.split('/').pop() || '';
       const nameEl = document.querySelector('.product-title');
       const priceEl = document.querySelector('.product-details-price');
@@ -359,6 +408,16 @@ const allImages = [product.thumbnail, product.thumbnailHover, ...product.images]
         size: selectedSize,
         color: selectedColor,
       });
+      // Brief confirmation state, then open the drawer
+      window.clearTimeout(resetTimer);
+      addToCartBtn.classList.add('is-added');
+      addToCartBtn.textContent = 'Added ✓';
+      addToCartBtn.disabled = true;
+      resetTimer = window.setTimeout(() => {
+        addToCartBtn.classList.remove('is-added');
+        addToCartBtn.textContent = defaultLabel;
+        addToCartBtn.disabled = false;
+      }, 1200);
       if (typeof (window as any).__dojeenOpenCart === 'function') {
         (window as any).__dojeenOpenCart();
       }
@@ -413,5 +472,50 @@ const allImages = [product.thumbnail, product.thumbnailHover, ...product.images]
     prev.addEventListener('click', function () { if (cur > 0) { cur--; update(); } });
     next.addEventListener('click', function () { if (cur < maxCur()) { cur++; update(); } });
     window.addEventListener('resize', function () { cur = Math.min(cur, maxCur()); update(); });
+  })();
+
+  /* ── Gallery lightbox ── */
+  (function () {
+    var box = document.getElementById('pdpLightbox');
+    var imgEl = document.getElementById('pdpLightboxImg');
+    var closeBtn = document.getElementById('pdpLightboxClose');
+    var prevBtn = document.getElementById('pdpLightboxPrev');
+    var nextBtn = document.getElementById('pdpLightboxNext');
+    if (!box || !imgEl) return;
+
+    var links = Array.prototype.slice.call(document.querySelectorAll('.product-lightbox'));
+    var srcs = links.map(function (a) { return a.getAttribute('href'); });
+    var idx = 0;
+
+    function show(i) {
+      idx = (i + srcs.length) % srcs.length;
+      imgEl.setAttribute('src', srcs[idx]);
+    }
+    function open(i) {
+      show(i);
+      box.classList.add('open');
+      box.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      if (closeBtn) closeBtn.focus();
+    }
+    function close() {
+      box.classList.remove('open');
+      box.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    }
+
+    links.forEach(function (a, i) {
+      a.addEventListener('click', function (e) { e.preventDefault(); open(i); });
+    });
+    if (closeBtn) closeBtn.addEventListener('click', close);
+    if (prevBtn) prevBtn.addEventListener('click', function () { show(idx - 1); });
+    if (nextBtn) nextBtn.addEventListener('click', function () { show(idx + 1); });
+    box.addEventListener('click', function (e) { if (e.target === box) close(); });
+    document.addEventListener('keydown', function (e) {
+      if (!box.classList.contains('open')) return;
+      if (e.key === 'Escape') close();
+      else if (e.key === 'ArrowLeft') show(idx - 1);
+      else if (e.key === 'ArrowRight') show(idx + 1);
+    });
   })();
 </script>

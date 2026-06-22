@@ -57,7 +57,7 @@ const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
       id="google-fonts-link"
       rel="preload"
       as="style"
-      href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&family=Hanken+Grotesk:wght@300..700&display=swap"
     />
     <script is:inline>
       (function () {
@@ -68,7 +68,7 @@ const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
     <noscript>
       <link
         rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&family=Hanken+Grotesk:wght@300..700&display=swap"
       />
     </noscript>
 
@@ -82,6 +82,29 @@ const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
 
     <!-- Cart Drawer (always present in DOM) -->
     <CartDrawer />
+
+    <!-- Back to top -->
+    <button id="backToTop" aria-label="Back to top">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="18 15 12 9 6 15"/>
+      </svg>
+    </button>
+    <script is:inline>
+      (function () {
+        var btn = document.getElementById('backToTop');
+        if (!btn) return;
+        window.addEventListener('scroll', function () {
+          if (window.scrollY > 300) {
+            btn.classList.add('visible');
+          } else {
+            btn.classList.remove('visible');
+          }
+        }, { passive: true });
+        btn.addEventListener('click', function () {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+      })();
+    </script>
 
     <!-- Scroll reveal + stagger -->
     <script is:inline>

@@ -117,8 +117,12 @@ const discountProducts = products.filter((p) => (p.discount ?? 0) > 0);
 
               <!-- Sort bar -->
               <div class="product-selector-form-block w-form">
-                <div class="selector-text">Sort by:</div>
+                <div class="shop-result-info">
+                  <span class="selector-text" id="resultCount"></span>
+                  <button type="button" class="shop-clear-filter" id="clearFilter" hidden>Clear filter</button>
+                </div>
                 <form class="product-selector-form" id="sortForm">
+                  <div class="selector-text">Sort by:</div>
                   <select id="sortSelect" class="product-select-input w-select">
                     <option value="default">Best Selling</option>
                     <option value="featured">Featured</option>
@@ -303,53 +307,51 @@ const discountProducts = products.filter((p) => (p.discount ?? 0) > 0);
 </BaseLayout>
 
 <script is:inline>
-  /* ── Tab switching ── */
+  /* ── Archive: tabs + filter + sort (coordinated) ── */
   (function () {
     var tabLinks = document.querySelectorAll('.product-archive-tab-menu-link');
     var tabPanes = document.querySelectorAll('.product-archive-tab-pane');
-
-    tabLinks.forEach(function (link) {
-      link.addEventListener('click', function () {
-        var target = link.getAttribute('data-tab');
-        tabLinks.forEach(function (l) { l.classList.remove('w--current'); });
-        tabPanes.forEach(function (p) { p.classList.remove('w--tab-active'); });
-        link.classList.add('w--current');
-        var pane = document.querySelector('.product-archive-tab-pane[data-tab-pane="' + target + '"]');
-        if (pane) pane.classList.add('w--tab-active');
-      });
-    });
-  })();
-
-  /* ── Sidebar category filter (All tab only) ── */
-  (function () {
     var categoryLinks = document.querySelectorAll('.prodcut-sidebar-category-link');
     var allGrid = document.getElementById('allGrid');
-
-    categoryLinks.forEach(function (link) {
-      link.addEventListener('click', function (e) {
-        e.preventDefault();
-        var filter = link.getAttribute('data-filter');
-        categoryLinks.forEach(function (l) { l.classList.remove('w--current'); });
-        link.classList.add('w--current');
-        if (!allGrid) return;
-        var items = allGrid.querySelectorAll('.product-collection-item');
-        items.forEach(function (item) {
-          var cat = item.getAttribute('data-category');
-          item.style.display = (filter === 'all' || cat === filter) ? '' : 'none';
-        });
-      });
-    });
-  })();
-
-  /* ── Sort (All tab) ── */
-  (function () {
     var sortSelect = document.getElementById('sortSelect');
-    var allGrid = document.getElementById('allGrid');
-    if (!sortSelect || !allGrid) return;
+    var countEl = document.getElementById('resultCount');
+    var clearBtn = document.getElementById('clearFilter');
 
-    sortSelect.addEventListener('change', function () {
+    var activeTab = 'all';
+    var activeFilter = 'all';
+
+    function activePane() {
+      return document.querySelector('.product-archive-tab-pane[data-tab-pane="' + activeTab + '"]');
+    }
+
+    function applyFilter() {
+      // Category filter only applies to the All grid; other tabs always show all of their items.
+      if (allGrid) {
+        allGrid.querySelectorAll('.product-collection-item').forEach(function (item) {
+          var cat = item.getAttribute('data-category');
+          var hide = activeTab === 'all' && activeFilter !== 'all' && cat !== activeFilter;
+          item.style.display = hide ? 'none' : '';
+        });
+      }
+      updateCount();
+      if (clearBtn) clearBtn.hidden = activeFilter === 'all';
+    }
+
+    function updateCount() {
+      if (!countEl) return;
+      var pane = activePane();
+      if (!pane) return;
+      var visible = Array.prototype.filter.call(
+        pane.querySelectorAll('.product-collection-item'),
+        function (i) { return i.style.display !== 'none'; }
+      ).length;
+      countEl.textContent = 'Showing ' + visible + (visible === 1 ? ' product' : ' products');
+    }
+
+    function applySort() {
+      if (!sortSelect || !allGrid) return;
       var val = sortSelect.value;
-      var items = Array.from(allGrid.querySelectorAll('.product-collection-item'));
+      var items = Array.prototype.slice.call(allGrid.querySelectorAll('.product-collection-item'));
       items.sort(function (a, b) {
         var pa = parseFloat(a.getAttribute('data-price') || '0');
         var pb = parseFloat(b.getAttribute('data-price') || '0');
@@ -362,7 +364,50 @@ const discountProducts = products.filter((p) => (p.discount ?? 0) > 0);
         return 0;
       });
       items.forEach(function (item) { allGrid.appendChild(item); });
+    }
+
+    function withFade(fn) {
+      var pane = activePane();
+      var grid = pane ? pane.querySelector('.w-dyn-items') : null;
+      if (!grid) { fn(); return; }
+      grid.classList.add('is-filtering');
+      setTimeout(function () { fn(); grid.classList.remove('is-filtering'); }, 180);
+    }
+
+    tabLinks.forEach(function (link) {
+      link.addEventListener('click', function () {
+        activeTab = link.getAttribute('data-tab') || 'all';
+        tabLinks.forEach(function (l) { l.classList.remove('w--current'); });
+        tabPanes.forEach(function (p) { p.classList.remove('w--tab-active'); });
+        link.classList.add('w--current');
+        var pane = activePane();
+        if (pane) pane.classList.add('w--tab-active');
+        updateCount();
+      });
     });
+
+    categoryLinks.forEach(function (link) {
+      link.addEventListener('click', function (e) {
+        e.preventDefault();
+        activeFilter = link.getAttribute('data-filter') || 'all';
+        categoryLinks.forEach(function (l) { l.classList.remove('w--current'); });
+        link.classList.add('w--current');
+        withFade(applyFilter);
+      });
+    });
+
+    if (clearBtn) {
+      clearBtn.addEventListener('click', function () {
+        var allLink = document.querySelector('.prodcut-sidebar-category-link[data-filter="all"]');
+        if (allLink) allLink.click();
+      });
+    }
+
+    if (sortSelect) {
+      sortSelect.addEventListener('change', function () { withFade(function () { applySort(); applyFilter(); }); });
+    }
+
+    updateCount();
   })();
 
   /* ── Mobile sidebar accordion ── */

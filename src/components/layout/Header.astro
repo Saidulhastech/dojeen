@@ -50,12 +50,12 @@ const headerClass = variant === 'homepage' || variant === 'transparent'
                 </li>
                 <li class="header-nav-list-item">
                   <div class="header-nav-dropdown w-dropdown" data-dropdown>
-                    <div class="header-nav-dropdown-toggle w-dropdown-toggle" data-dropdown-toggle>
-                      <div class="header-dropdown-text-block">
+                    <div class="header-nav-dropdown-toggle w-dropdown-toggle">
+                      <a href="/shop" class="header-dropdown-text-block">
                         <div class="header-dropdown-text">Shop</div>
                         <div class="header-nav-link-line"></div>
-                      </div>
-                      <div class="link-icon w-embed">
+                      </a>
+                      <div class="link-icon w-embed" data-dropdown-toggle>
                         <svg xmlns="http://www.w3.org/2000/svg" width="10" height="6" viewBox="0 0 10 6" fill="none">
                           <path d="M4.79835 5.99319C4.62636 5.99319 4.45438 5.92128 4.32326 5.77777L0.196869 1.25949C-0.065623 0.972075 -0.065623 0.506075 0.196869 0.218773C0.459255 -0.0685297 0.884756 -0.0685297 1.14727 0.218773L4.79835 4.2168L8.44945 0.218912C8.71194 -0.06839 9.1374 -0.06839 9.39977 0.218912C9.66238 0.506215 9.66238 0.972214 9.39977 1.25963L5.27344 5.77791C5.14225 5.92145 4.97028 5.99319 4.79835 5.99319Z" fill="currentColor" />
                         </svg>
@@ -164,36 +164,45 @@ const headerClass = variant === 'homepage' || variant === 'transparent'
                 </li>
               </ul>
 
-              <!-- Right side: search + user -->
-              <div class="header-right-side">
-                <form action="/search" class="search w-form">
-                  <input
-                    class="search-input w-input"
-                    maxlength="256"
-                    name="query"
-                    placeholder="Search products....."
-                    type="search"
-                    id="search"
-                  />
-                  <input type="submit" class="search-button w-button" value="" />
-                </form>
-                <a href="/auth/login" class="user-link-blcok w-inline-block">
-                  <div class="user-icon w-embed">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="20" viewBox="0 0 18 20" fill="none">
-                      <path d="M16.1114 18.8889V16.6338C16.1114 15.2535 15.49 13.8999 14.234 13.3273C12.702 12.629 10.8647 12.2222 8.88921 12.2222C6.91377 12.2222 5.07644 12.629 3.54441 13.3273C2.2884 13.8999 1.66699 15.2535 1.66699 16.6338V18.8889" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                      <path d="M8.88889 8.88886C11.0367 8.88886 12.7778 7.14775 12.7778 4.99997C12.7778 2.8522 11.0367 1.11108 8.88889 1.11108C6.74111 1.11108 5 2.8522 5 4.99997C5 7.14775 6.74111 8.88886 8.88889 8.88886Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
-                  </div>
-                </a>
-              </div>
             </div>
           </nav>
 
           <!-- Cart + Hamburger -->
           <div class="nav-button-block">
+            <!-- Search + User (desktop) -->
+            <div class="header-right-side">
+              <form action="/search" class="search w-form">
+                <input
+                  class="search-input w-input"
+                  maxlength="256"
+                  name="query"
+                  placeholder="Search products....."
+                  type="search"
+                  id="search"
+                />
+                <input type="submit" class="search-button w-button" value="" />
+              </form>
+              <a href="/auth/login" class="user-link-blcok w-inline-block">
+                <div class="user-icon w-embed">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="20" viewBox="0 0 18 20" fill="none">
+                    <path d="M16.1114 18.8889V16.6338C16.1114 15.2535 15.49 13.8999 14.234 13.3273C12.702 12.629 10.8647 12.2222 8.88921 12.2222C6.91377 12.2222 5.07644 12.629 3.54441 13.3273C2.2884 13.8999 1.66699 15.2535 1.66699 16.6338V18.8889" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M8.88889 8.88886C11.0367 8.88886 12.7778 7.14775 12.7778 4.99997C12.7778 2.8522 11.0367 1.11108 8.88889 1.11108C6.74111 1.11108 5 2.8522 5 4.99997C5 7.14775 6.74111 8.88886 8.88889 8.88886Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </div>
+              </a>
+            </div>
+
+            <!-- Search icon (mobile only) -->
+            <a href="/search" class="mobile-search-btn" aria-label="Search">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </a>
+
             <!-- User icon (mobile only) -->
             <a href="/auth/login" class="mobile-user-link" aria-label="Account">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="20" viewBox="0 0 18 20" fill="none">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 18 20" fill="none">
                 <path d="M16.1114 18.8889V16.6338C16.1114 15.2535 15.49 13.8999 14.234 13.3273C12.702 12.629 10.8647 12.2222 8.88921 12.2222C6.91377 12.2222 5.07644 12.629 3.54441 13.3273C2.2884 13.8999 1.66699 15.2535 1.66699 16.6338V18.8889" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                 <path d="M8.88889 8.88886C11.0367 8.88886 12.7778 7.14775 12.7778 4.99997C12.7778 2.8522 11.0367 1.11108 8.88889 1.11108C6.74111 1.11108 5 2.8522 5 4.99997C5 7.14775 6.74111 8.88886 8.88889 8.88886Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
@@ -233,48 +242,83 @@ const headerClass = variant === 'homepage' || variant === 'transparent'
 
 <nav class="mobile-nav-panel" id="mobileNavPanel">
   <div class="mobile-nav-inner">
-    <!-- Search -->
-    <form action="/search" class="mobile-nav-search" role="search">
-      <svg class="mobile-nav-search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="11" cy="11" r="8"></circle>
-        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-      </svg>
-      <input
-        class="mobile-nav-search-input"
-        type="search"
-        name="query"
-        placeholder="Search products..."
-        maxlength="256"
-        autocomplete="off"
-      />
-    </form>
 
-    <a href="/" class="mobile-nav-link">Home</a>
-    <div class="mobile-nav-group">
-      <button class="mobile-nav-group-toggle" data-mobile-group>
-        Shop <span class="mobile-nav-arrow">+</span>
+    <!-- Branded header -->
+    <div class="mobile-nav-header">
+      <a href="/" class="mobile-nav-logo-link">
+        <img src="/images/brand-logo.png" alt="Dojeen" class="mobile-nav-logo-img" />
+      </a>
+      <button class="mobile-nav-close" id="mobileNavClose" aria-label="Close menu">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
       </button>
-      <div class="mobile-nav-group-items">
-        <a href="/shop" class="mobile-nav-sub-link">Shop with Sidebar</a>
-        <a href="/shop/no-sidebar" class="mobile-nav-sub-link">Shop without Sidebar</a>
-      </div>
     </div>
-    <div class="mobile-nav-group">
-      <button class="mobile-nav-group-toggle" data-mobile-group>
-        Pages <span class="mobile-nav-arrow">+</span>
-      </button>
-      <div class="mobile-nav-group-items">
-        <a href="/about" class="mobile-nav-sub-link">About Us</a>
-        <a href="/blog" class="mobile-nav-sub-link">Blog</a>
-        <a href="/auth/login" class="mobile-nav-sub-link">Login & Register</a>
-        <a href="/auth/forgot-password" class="mobile-nav-sub-link">Forgot Password</a>
-        <a href="/template-info/style-guide" class="mobile-nav-sub-link">Style Guide</a>
-        <a href="/template-info/licenses" class="mobile-nav-sub-link">Licenses</a>
-        <a href="/template-info/changelog" class="mobile-nav-sub-link">Changelog</a>
-        <a href="/404" class="mobile-nav-sub-link">404 Page</a>
+
+    <!-- Nav body -->
+    <div class="mobile-nav-body">
+
+      <!-- Search -->
+      <form action="/search" class="mobile-nav-search" role="search">
+        <svg class="mobile-nav-search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input
+          class="mobile-nav-search-input"
+          type="search"
+          name="query"
+          placeholder="Search products..."
+          maxlength="256"
+          autocomplete="off"
+        />
+      </form>
+
+      <a href="/" class="mobile-nav-link">Home</a>
+      <div class="mobile-nav-group">
+        <button class="mobile-nav-group-toggle" data-mobile-group>
+          Shop
+          <span class="mobile-nav-arrow">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
+        </button>
+        <div class="mobile-nav-group-items">
+          <a href="/shop" class="mobile-nav-sub-link">Shop with Sidebar</a>
+          <a href="/shop/no-sidebar" class="mobile-nav-sub-link">Shop without Sidebar</a>
+        </div>
       </div>
+      <div class="mobile-nav-group">
+        <button class="mobile-nav-group-toggle" data-mobile-group>
+          Pages
+          <span class="mobile-nav-arrow">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
+        </button>
+        <div class="mobile-nav-group-items">
+          <a href="/about" class="mobile-nav-sub-link">About Us</a>
+          <a href="/blog" class="mobile-nav-sub-link">Blog</a>
+          <a href="/auth/login" class="mobile-nav-sub-link">Login &amp; Register</a>
+          <a href="/auth/forgot-password" class="mobile-nav-sub-link">Forgot Password</a>
+          <a href="/template-info/style-guide" class="mobile-nav-sub-link">Style Guide</a>
+          <a href="/template-info/licenses" class="mobile-nav-sub-link">Licenses</a>
+          <a href="/template-info/changelog" class="mobile-nav-sub-link">Changelog</a>
+          <a href="/404" class="mobile-nav-sub-link">404 Page</a>
+        </div>
+      </div>
+      <a href="/contact" class="mobile-nav-link">Contact</a>
+
     </div>
-    <a href="/contact" class="mobile-nav-link">Contact</a>
+
+    <!-- Footer CTA -->
+    <div class="mobile-nav-footer">
+      <a href="/shop/no-sidebar" class="mobile-nav-cta">Shop Collection</a>
+    </div>
+
   </div>
 </nav>
 
@@ -396,19 +440,24 @@ const headerClass = variant === 'homepage' || variant === 'transparent'
     btn && btn.addEventListener('click', function () {
       panel && panel.classList.contains('open') ? closeMenu() : openMenu();
     });
+    var closeBtn = document.getElementById('mobileNavClose');
+    closeBtn && closeBtn.addEventListener('click', closeMenu);
     overlay && overlay.addEventListener('click', closeMenu);
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeMenu(); });
 
-    // Mobile group toggles
+    // Mobile group toggles — also toggle .open on the parent group for arrow rotation
     document.querySelectorAll('[data-mobile-group]').forEach(function (toggle) {
       toggle.addEventListener('click', function () {
         var items = toggle.nextElementSibling;
+        var group = toggle.parentElement;
         if (items) items.classList.toggle('open');
+        if (group) group.classList.toggle('open');
       });
     });
 
     // Scroll hide/show: hide on scroll-down, show nav-only on scroll-up, full at top
     // Matches Webflow GSAP: y="-100%" down, y="-40px" up (hides 40px top-bar), y=0 at top
+    // Also adds .is-scrolled for the glass backdrop effect on the main nav.
     (function () {
       var header = document.getElementById('site-header');
       if (!header) return;
@@ -417,10 +466,13 @@ const headerClass = variant === 'homepage' || variant === 'transparent'
         var y = window.pageYOffset;
         if (y <= 0) {
           header.style.transform = '';
+          header.classList.remove('is-scrolled');
         } else if (y > lastY + 2) {
           header.style.transform = 'translateY(-100%)';
+          header.classList.add('is-scrolled');
         } else if (y < lastY - 2) {
           header.style.transform = 'translateY(-40px)';
+          header.classList.add('is-scrolled');
         }
         lastY = y;
       }, { passive: true });

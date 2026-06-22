@@ -2,6 +2,7 @@
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import Header from '@/components/layout/Header.astro';
 import Footer from '@/components/layout/Footer.astro';
+import BlogCard from '@/components/sections/BlogCard.astro';
 import { posts } from '@/data/blog';
 import type { Post } from '@/types';
 import type { GetStaticPaths } from 'astro';
@@ -19,6 +20,12 @@ interface Props {
 
 const { post } = Astro.props;
 const categorySlug = post.category.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and');
+
+// Related posts: same category first, then fill with recent posts; max 3
+const relatedPosts = [
+  ...posts.filter((p) => p.category === post.category && p.slug !== post.slug),
+  ...posts.filter((p) => p.category !== post.category && p.slug !== post.slug),
+].slice(0, 3);
 ---
 
 <BaseLayout title={`${post.title} — Dojeen Blog`} description={post.excerpt}>
@@ -86,6 +93,31 @@ const categorySlug = post.category.toLowerCase().replace(/\s+/g, '-').replace(/&
         </div>
       </div>
     </section>
+
+    <!-- Related Articles -->
+    {relatedPosts.length > 0 && (
+      <section class="blog-section">
+        <div class="section-gap-bottom">
+          <div class="w-layout-blockcontainer container-default w-container">
+            <div class="section-title-block center">
+              <div class="section-title-inner blog">
+                <div class="section-subtitle">Keep Reading</div>
+                <h2 class="section-title">Related Articles</h2>
+              </div>
+            </div>
+            <div class="blog-list-wrapper w-dyn-list">
+              <div role="list" class="blog-list w-dyn-items">
+                {relatedPosts.map((p) => (
+                  <div role="listitem" class="blog-list-item w-dyn-item">
+                    <BlogCard post={p} headingTag="h3" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    )}
 
   </main>
   <Footer />

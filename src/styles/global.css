@@ -1,6 +1,207 @@
 @import "tailwindcss";
 @import "./webflow.css";
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   PREMIUM — "Quiet-Luxury Editorial" design-system overrides
+   ───────────────────────────────────────────────────────────────────────────
+   These redefine the Webflow design tokens so the new look cascades across every
+   component automatically. Placed AFTER the webflow.css import so they win the
+   cascade at equal (:root) specificity. webflow.css itself stays a verbatim
+   Webflow mirror (per CLAUDE.md) — nothing is edited there.
+
+   Direction: warm bone/paper surfaces · warm-ink charcoal text · high-contrast
+   editorial serif (Fraunces) headings · refined grotesque (Hanken) body ·
+   architectural near-square geometry · generous whitespace · red as sparse accent.
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root {
+  /* ── Typography ── */
+  --_font-family---font-famity-heading: "Fraunces", "Playfair Display", Georgia, serif;
+  --_font-family---font-family-body: "Hanken Grotesk", "Inter", system-ui, sans-serif;
+  /* mobile-nav / misc references */
+  --_font-family---font-primary: "Hanken Grotesk", "Inter", system-ui, sans-serif;
+  --_font-family---font-secondary: "Hanken Grotesk", "Inter", system-ui, sans-serif;
+
+  /* ── Color: warm ink + bone neutral scale ──
+     Pure white kept for crisp card surfaces + text-on-dark. Page bg set to bone below. */
+  --_color---black: #1a1714;          /* warm ink (was pure black) */
+  --_color---neutral-800: #1a1714;
+  --_color---neutral-700: #2a2521;
+  --_color---neutral-600: #6b6258;    /* muted taupe body/meta text (≥4.5:1 on bone) */
+  --_color---neutral-500: #a39a8c;
+  --_color---neutral-450: #e1d8c3;
+  --_color---neutral-400: #ded5c7;    /* warm hairline / borders */
+  --_color---neutral-300: #e8e1d5;
+  --_color---neutral-200: #efe9df;    /* warm section bands */
+  --_color---neutral-150: #f1ece3;
+  --_color---neutral-100: #f5f1ea;    /* bone / paper */
+
+  /* Brand red: softened to clay, used sparingly as accent */
+  --_color---red-500: #bc4b3c;
+
+  /* ── Geometry: architectural, near-square ──
+     radius-l stays 100px for genuinely-round elements (swatches, circle buttons,
+     qty stepper). Rectangular buttons are squared via class override below. */
+  --_border-radius---radius-xs: 2px;
+  --_border-radius---radius-s: 4px;
+  --_border-radius---radius-m: 10px;
+
+  /* ── Rhythm: more air ── */
+  --section-gap: 128px;
+  --section-gap-small: 104px;
+  --section-title-gap: 64px;
+
+  /* ── Display type: larger + tighter editorial scale ── */
+  --_font-sizes---large-heading: clamp(56px, 6vw, 88px);
+  --_font-sizes---heading-1: clamp(40px, 4.4vw, 56px);
+}
+
+/* Warm bone page canvas (webflow.css paints body/page-wrapper white) */
+body,
+.page-wrapper {
+  background-color: var(--_color---neutral-100);
+}
+
+/* ── Buttons: pill → architectural near-square (they reference radius-l) ── */
+.primary-button,
+.secondary-button {
+  border-radius: 2px;
+}
+
+/* ── Product slider edge masks: blend with the bone canvas instead of pure white.
+   These 40px strips hide the partially-visible adjacent slides, so they must match
+   the page background (not be transparent, or the half-cut neighbours would show). ── */
+.left-overlay,
+.right-overlay {
+  background-color: var(--_color---neutral-100);
+}
+
+/* ═══ Header: first-impression polish ═══ */
+/* Unify geometry — the search field + cart button were still 100px pills (radius-l),
+   clashing with the new near-square button language. Make them refined outline chips. */
+.search,
+.search-input {
+  border-radius: 2px;
+}
+.search-input {
+  border-color: var(--_color---neutral-400);
+}
+.user-link-blcok {
+  border-radius: 2px;
+}
+.cart-button {
+  border-radius: 2px;
+  background-color: transparent;
+  border: 1px solid var(--_color---neutral-400);
+}
+.cart-button:hover {
+  background-color: var(--_color---black);
+  color: var(--_color---white);
+  border-color: var(--_color---black);
+}
+
+/* Announcement bar → boutique-style: uppercase, airy tracking, quieter size */
+.header-top-banner-text {
+  font-family: var(--_font-family---font-family-body);
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+}
+.header-top-bar-text-link {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Nav links: editorial tracking + medium weight */
+.header-nav-link-text,
+.header-dropdown-text {
+  letter-spacing: 0.06em;
+  font-weight: 500;
+  font-size: 15px;
+}
+
+/* ─── Dropdown: animated entrance + editorial dark panel ─── */
+
+/* Chevron rotates 180° when its parent dropdown is hovered or open */
+.link-icon {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.header-nav-dropdown:hover .link-icon,
+.header-nav-dropdown.open .link-icon {
+  transform: rotate(180deg);
+}
+
+/* Entrance: slide down + fade in (animation re-fires each time display:none → block) */
+.w-dropdown:hover .w-dropdown-list,
+.w-dropdown.open .w-dropdown-list {
+  animation: header-dropdown-enter 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes header-dropdown-enter {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Panel inner: warm-ink dark surface, brand-red top accent bar, editorial depth shadow */
+.header-nav-dropdown-inner {
+  background-color: var(--_color---black);
+  margin-top: 12px;
+  padding: 20px 24px 26px;
+  border-top: 2px solid var(--_color---red-500);
+  border-radius: 0 0 10px 10px;
+  box-shadow:
+    0 28px 56px -16px rgba(26, 23, 20, 0.6),
+    0 8px 20px -8px rgba(26, 23, 20, 0.4);
+}
+
+/* Dropdown links: comfortable vertical rhythm + hover warm neutral */
+.nav-dropdown-link-block {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  font-size: 14px;
+  letter-spacing: 0.025em;
+}
+.nav-dropdown-link-block:hover {
+  color: var(--_color---neutral-400);
+}
+
+/* Column titles: demote from large heading to muted uppercase eyebrow label */
+.nav-dropdown-title {
+  font-family: var(--_font-family---font-family-body);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--_color---neutral-500);
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 4px;
+}
+
+/* ─── Scroll-aware header: glass surface when page is scrolled ─── */
+/* JS adds .is-scrolled once the page scrolls past the top-bar height (~40px).
+   The main nav gains a frosted-bone surface + shadow so it reads as a distinct
+   floating layer — especially useful on the transparent homepage header. */
+#site-header.is-scrolled .header-main {
+  background-color: rgba(245, 241, 234, 0.92);
+  -webkit-backdrop-filter: blur(14px);
+          backdrop-filter: blur(14px);
+  box-shadow: 0 1px 0 var(--_color---neutral-400),
+              0 4px 16px -4px rgba(26, 23, 20, 0.08);
+}
+
+/* ── Editorial serif display tuning ── */
+.home-hero-title,
+.section-title,
+.home-about-title,
+.home-banner-title-two,
+.best-seller-banner-title {
+  letter-spacing: -0.02em;
+  font-weight: var(--_font-weight---medium);
+}
+.home-hero-title {
+  letter-spacing: -0.025em;
+}
+
 /* ─── Webflow background-video base styles (normally from webflow.js bundle) ─── */
 .w-background-video {
   position: relative;
@@ -14,6 +215,15 @@
   height: 100%;
   object-fit: cover;
   z-index: -100;
+}
+/* about-intro video is foreground content, not a true bg video — reset z-index */
+.about-intro-video > video {
+  z-index: 0;
+}
+/* play-pause button needs position:absolute (bottom/left set in webflow.css) + above video */
+.play-pause-button-2 {
+  position: absolute;
+  z-index: 1;
 }
 
 /* ─── Webflow slider primitives (normally in webflow.js bundle, not exported CSS) ─── */
@@ -117,10 +327,11 @@
 .w-tab-pane.w--tab-active { display: block; }
 
 /* ─── Offers section: absolute-position + opacity fade (matches Webflow IX2 behaviour) ─── */
-/* Previous BG drives the card-block height. Pin to 600px so portrait images don't make the
-   section taller than intended (slides are position:absolute and don't clip to the mask). */
-.offers-bg-image-previous { width: 100%; height: 600px; }
-/* Active BG: Webflow IX2 animates from bottom:-100% → inset:0. Show it statically. */
+/* Previous BG is kept ONLY to drive the card-block height (it sits in normal flow); it must
+   be invisible, otherwise it double-exposes with the active BG. Pin to 600px so portrait
+   images don't make the section taller than intended. */
+.offers-bg-image-previous { width: 100%; height: 600px; opacity: 0; pointer-events: none; }
+/* Active BG: the single visible background, filling the card block. */
 .offers-bg-image-active { bottom: 0; top: 0; height: 100%; }
 
 /* Product slider mask: overflow visible so slides 1-4 show side-by-side.
@@ -207,6 +418,9 @@
   }
 }
 
+.footer-input { width: 100%; }
+#footer-terms { margin-right: 5px; }
+
 @media (max-width: 767px) {
   .footer-input { width: 100%; }
   .product-section .section-gap { padding-bottom: 60px; }
@@ -225,6 +439,106 @@
     right: calc(50% - 44px) !important;
     left: auto !important;
   }
+}
+
+/* Shop nav text is now an <a> — strip default link styles */
+a.header-dropdown-text-block {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ─── Header: premium refinements ─── */
+
+/* More breathing room */
+.navbar-container {
+  padding-top: 28px;
+  padding-bottom: 28px;
+}
+
+/* 3-part layout: logo left | nav centered | actions right */
+.navbar-wrapper {
+  position: relative;
+}
+.nav-menu-wrapper {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+  width: auto;
+}
+.nav-menu-inner {
+  justify-content: center;
+  flex: none;
+  pointer-events: auto;
+}
+/* nav-button-block now holds search + user + cart + hamburger */
+.nav-button-block {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+/* Mobile search icon: hidden on desktop, shown on mobile */
+.mobile-search-btn {
+  display: none;
+  color: inherit;
+  text-decoration: none;
+  align-items: center;
+}
+
+/* Logo: slightly more presence */
+.header-logo {
+  max-width: 160px;
+}
+
+/* Active / hover nav underline: brand red, 1.5px */
+.header-nav-link-line {
+  background-color: var(--_color---red-500);
+  height: 1.5px;
+}
+
+/* Search: editorial underline-only (strip the pill) */
+.search {
+  border-radius: 0;
+  overflow: visible;
+}
+.search-input {
+  border: none;
+  border-bottom: 1.5px solid var(--_color---neutral-400);
+  border-radius: 0;
+  background: transparent;
+  width: 180px;
+  height: 36px;
+  min-height: 36px;
+  padding-left: 2px;
+  padding-right: 36px;
+  transition: border-color 0.25s ease;
+}
+.search-input:focus,
+.search-input:focus-visible,
+.search-input[data-wf-focus-visible] {
+  border-color: var(--_color---black);
+  box-shadow: none;
+  outline: none;
+}
+
+/* Cart button: matches user icon height (42px) and border color */
+.cart-button {
+  background-color: transparent;
+  border: 1px solid var(--_color---neutral-400);
+  border-radius: 2px;
+  height: 42px;
+  padding: 0 18px;
+  letter-spacing: 0.08em;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+.cart-button:hover {
+  background-color: var(--_color---black);
+  border-color: var(--_color---black);
+  color: var(--_color---white);
 }
 
 /* ─── Homepage header: neutral-100 bg to match Webflow variant ─── */
@@ -254,6 +568,27 @@
   text-decoration: none;
 }
 
+/* Mobile header: search + user icon + cart icon + hamburger */
+.mobile-user-link {
+  display: none;
+  color: inherit;
+  text-decoration: none;
+  align-items: center;
+}
+@media (max-width: 991px) {
+  .header-right-side { display: none; }
+  .mobile-search-btn { display: flex; }
+  .mobile-user-link { display: flex; }
+  /* Cart: icon + quantity on mobile — hide "Cart" label only, strip border/padding */
+  .cart-button .cart-button-text { display: none; }
+  .cart-button {
+    border: none;
+    padding: 0;
+    height: auto;
+    background: transparent;
+  }
+}
+
 /* ─── Primary button hover: white circle wipes in from above (replaces Webflow IX2) ───
    webflow.css sets .button-bg at transform:translate(0,-76%) — off-screen above the button.
    On hover the circle translates down to fill the button; text transitions white→black. */
@@ -261,7 +596,8 @@
   transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 .primary-button:hover .button-bg,
-.secondary-button:hover .button-bg {
+.secondary-button:hover .button-bg,
+.banner-button:hover .button-bg {
   transform: translate(0, 0);
 }
 
@@ -271,7 +607,9 @@
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(26, 23, 20, 0.45);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
   z-index: 9997;
 }
 .mobile-nav-overlay.open { display: block; }
@@ -281,20 +619,64 @@
   top: 0;
   left: 0;
   bottom: 0;
-  width: min(300px, 85vw);
-  background: #fff;
+  width: min(340px, 92vw);
+  background: var(--_color---neutral-100, #F5F1EA);
   z-index: 9998;
   transform: translateX(-100%);
-  transition: transform 0.35s ease;
+  transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1);
   overflow-y: auto;
-  box-shadow: 0 13px 48px rgba(0, 0, 0, 0.2);
+  box-shadow: 4px 0 60px rgba(26, 23, 20, 0.2);
+  display: flex;
+  flex-direction: column;
 }
 .mobile-nav-panel.open { transform: translateX(0); }
 
 .mobile-nav-inner {
   display: flex;
   flex-direction: column;
-  padding: 120px 24px 80px;
+  flex: 1;
+  min-height: 100%;
+}
+
+/* Panel header: logo + close */
+.mobile-nav-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--_color---neutral-300, #DED5C7);
+  flex-shrink: 0;
+  background: var(--_color---white, #fff);
+}
+.mobile-nav-logo-img {
+  height: 26px;
+  width: auto;
+}
+.mobile-nav-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--_color---neutral-200, #e8e1d5);
+  border: none;
+  cursor: pointer;
+  color: var(--_color---black, #1A1714);
+  transition: background 0.2s ease, color 0.2s ease;
+  flex-shrink: 0;
+}
+.mobile-nav-close:hover {
+  background: var(--_color---black, #1A1714);
+  color: var(--_color---white, #fff);
+}
+
+/* Body scroll area */
+.mobile-nav-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 20px 24px 0;
 }
 /* ─── Testimonial mobile slider ──────────────────────────────────────────── */
 @media (max-width: 767px) {
@@ -342,14 +724,15 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  border: 1.5px solid var(--_color---neutral-400, #e5e8ec);
+  background: var(--_color---white, #fff);
+  border: 1px solid var(--_color---neutral-300, #DED5C7);
   border-radius: 8px;
-  padding: 10px 14px;
-  margin-bottom: 8px;
+  padding: 11px 14px;
+  margin-bottom: 20px;
 }
 .mobile-nav-search-icon {
   flex-shrink: 0;
-  color: var(--_color---neutral-600, #888);
+  color: var(--_color---neutral-600, #6B6258);
 }
 .mobile-nav-search-input {
   flex: 1;
@@ -358,52 +741,110 @@
   background: transparent;
   font-family: var(--_font-family---font-secondary, 'Inter', sans-serif);
   font-size: 14px;
-  color: var(--_color---black, #1d1d1d);
+  color: var(--_color---black, #1A1714);
 }
 .mobile-nav-search-input::placeholder {
-  color: var(--_color---neutral-600, #888);
+  color: var(--_color---neutral-600, #6B6258);
 }
+
+/* Top-level nav links — editorial serif */
 .mobile-nav-link {
-  font-family: var(--_font-family---font-primary, 'Instrument Sans', sans-serif);
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--_color---black, #1d1d1d);
+  font-family: var(--_font-family---font-famity-heading, serif);
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--_color---black, #1A1714);
   text-decoration: none;
-  padding: 14px 0;
-  border-bottom: 1px solid var(--_color---neutral-400, #e5e8ec);
+  padding: 13px 0;
+  border-bottom: 1px solid var(--_color---neutral-300, #DED5C7);
+  transition: color 0.2s ease;
 }
+.mobile-nav-link:hover { color: var(--_color---red-500, #d0473e); }
+
 .mobile-nav-group {
-  border-bottom: 1px solid var(--_color---neutral-400, #e5e8ec);
+  border-bottom: 1px solid var(--_color---neutral-300, #DED5C7);
 }
 .mobile-nav-group-toggle {
   width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-family: var(--_font-family---font-primary, 'Instrument Sans', sans-serif);
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--_color---black, #1d1d1d);
+  font-family: var(--_font-family---font-famity-heading, serif);
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--_color---black, #1A1714);
   background: none;
   border: none;
   cursor: pointer;
-  padding: 14px 0;
+  padding: 13px 0;
   text-align: left;
+  transition: color 0.2s ease;
 }
-.mobile-nav-arrow { font-size: 14px; }
+.mobile-nav-group-toggle:hover { color: var(--_color---red-500, #d0473e); }
+
+/* Chevron badge */
+.mobile-nav-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--_color---neutral-200, #e8e1d5);
+  color: var(--_color---black, #1A1714);
+  flex-shrink: 0;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              background 0.25s ease, color 0.25s ease;
+}
+.mobile-nav-group.open .mobile-nav-arrow {
+  transform: rotate(180deg);
+  background: var(--_color---black, #1A1714);
+  color: var(--_color---white, #fff);
+}
+
+/* Sub-links with red left-border accent */
 .mobile-nav-group-items {
   display: none;
   flex-direction: column;
-  padding-left: 12px;
+  padding: 6px 0 14px 16px;
+  border-left: 2px solid var(--_color---red-500, #d0473e);
+  margin-left: 2px;
+  margin-bottom: 2px;
 }
 .mobile-nav-group-items.open { display: flex; }
 .mobile-nav-sub-link {
   font-size: 14px;
-  color: var(--_color---neutral-600, #3b3b3b);
+  font-weight: 500;
+  color: var(--_color---neutral-600, #6B6258);
   text-decoration: none;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--_color---neutral-400, #e5e8ec);
+  padding: 8px 0;
+  transition: color 0.2s ease;
 }
+.mobile-nav-sub-link:hover { color: var(--_color---black, #1A1714); }
+
+/* Footer CTA */
+.mobile-nav-footer {
+  padding: 28px 24px 36px;
+  margin-top: auto;
+}
+.mobile-nav-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 14px 24px;
+  background: var(--_color---black, #1A1714);
+  color: var(--_color---white, #fff);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 2px;
+  transition: background 0.25s ease;
+}
+.mobile-nav-cta:hover { background: var(--_color---red-500, #d0473e); }
 
 /* ─── Mobile header layout ───────────────────────────────────────────────────
    Logo left, buttons right — matches Webflow original (space-between flex).
@@ -447,6 +888,25 @@
   animation: badge-marquee 22s linear infinite;
 }
 
+/* ─── Badge marquee: premium ticker polish (defined band, edge fade, refined type) ─── */
+.badge-marquee-wrapper {
+  background-color: var(--_color---neutral-200);
+  /* Soft-fade the content at both edges so it never hard-cuts at the viewport */
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 11%, #000 89%, transparent 100%);
+          mask-image: linear-gradient(90deg, transparent 0, #000 11%, #000 89%, transparent 100%);
+}
+/* The emoji-style icons read as oversized clip-art at 70px — scale them down so the
+   wordmark leads and the strip feels balanced */
+.badge-icon {
+  width: 44px;
+  height: 44px;
+}
+.badge-text {
+  font-family: var(--_font-family---font-famity-heading);
+  font-weight: var(--_font-weight---medium);
+  letter-spacing: 0.005em;
+}
+
 /* ─── Footer marquee: same continuous-scroll pattern with 3 inner duplicates ─── */
 @keyframes footer-marquee {
   from { transform: translateX(0); }
@@ -454,6 +914,66 @@
 }
 .footer-marquee-inner {
   animation: footer-marquee 18s linear infinite;
+}
+
+/* ─── Footer: brand accents + refined interactions ─── */
+/* Tie footer headings to the page's red-accent language with a short underline bar */
+.footer-heading {
+  position: relative;
+  padding-bottom: 16px;
+  margin-bottom: 28px;
+}
+.footer-heading::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 28px;
+  height: 2px;
+  background-color: var(--_color---red-500);
+}
+
+/* Links nudge right and brighten on hover — a small, intentional micro-interaction */
+.footer-link {
+  width: -moz-fit-content;
+  width: fit-content;
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+.footer-link:hover {
+  transform: translateX(4px);
+}
+
+/* Social icons: warm to brand red with a subtle lift instead of going transparent */
+.footer-social-link-block {
+  border-color: var(--_color---white);
+  transition: background-color 0.25s ease, border-color 0.25s ease,
+              color 0.25s ease, transform 0.25s ease;
+}
+.footer-social-link-block:hover {
+  background-color: var(--_color---red-500);
+  border-color: var(--_color---red-500);
+  color: var(--_color---white);
+  transform: translateY(-3px);
+}
+
+/* Newsletter submit reads as a real CTA in brand red */
+.footer-submit-button {
+  background-color: var(--_color---red-500);
+}
+.footer-submit-button:hover {
+  background-color: var(--_color---black);
+}
+
+/* Ghost wordmark: lighter, more editorial outline treatment */
+.footer-marquee-text {
+  opacity: 1;
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--_color---neutral-700);
+}
+
+/* Copyright bar: a little breathing room above the fine print */
+.footer-copiright-block {
+  border-top: 1px solid var(--_color---neutral-700);
 }
 
 /* ─── Scroll-reveal animation (matches Webflow IX2: 60px fade-up, outExpo curve) ─── */
@@ -548,36 +1068,210 @@
   }
 }
 
-/* ─── Category cards: initial states + hover interactions (replaces Webflow IX2) ─── */
-/* IX2 sets these as inline styles; we apply them via CSS so the hover transitions work */
-.category-serial-number { opacity: 0.65; }
-.product-amount-text    { opacity: 0.6; }
-
-/* Thumbnail hidden by default, revealed on hover */
-.category-thumbnail-block {
-  opacity: 0;
-  transition: opacity 0.3s ease;
+/* ─── Hero section: editorial framing + refined stats (quiet-luxury polish) ─── */
+/* Frame the hero image with softened inner corners + a slow Ken Burns drift so the
+   hard split between the neutral content column and the photo reads as intentional. */
+.home-hero-image-block {
+  overflow: hidden;
+  border-top-left-radius: var(--_border-radius---radius-m);
+  border-bottom-left-radius: var(--_border-radius---radius-m);
 }
-/* Ensure the img fills the 80×80px container */
+.home-hero-image {
+  object-position: 45% 20%;
+  transform-origin: 45% 20%;
+  animation: hero-img-drift 16s ease-in-out infinite alternate;
+}
+@keyframes hero-img-drift {
+  from { transform: scale(1.001); }
+  to   { transform: scale(1.06); }
+}
+
+/* Accent the eyebrow rule with the brand red and tighten the headline */
+.home-hero-subtitle-line {
+  width: 48px;
+  height: 2px;
+  background-color: var(--_color---red-500);
+}
+.home-hero-subtitle {
+  color: var(--_color---neutral-700, #3a3a3a);
+}
+.home-hero-title {
+  letter-spacing: -0.02em;
+}
+
+/* Turn the two stats into a divided, editorial stat row */
+.home-hero-funfact-wrapper {
+  grid-column-gap: 0;
+  column-gap: 0;
+}
+.home-hero-fun-fact-block {
+  padding-right: 36px;
+}
+.home-hero-fun-fact-block + .home-hero-fun-fact-block {
+  padding-left: 36px;
+  border-left: 1px solid var(--_color---neutral-400);
+}
+.home-hero-fun-fact-text {
+  letter-spacing: -0.01em;
+}
+
+/* Lift the watermark marquee from near-invisible to a deliberate, soft texture */
+.home-hero-marquee-text {
+  opacity: 0.05;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-hero-image { animation: none; transform: none; }
+}
+
+/* ─── Category cards: editorial lookbook (matches the product-card language) ─── */
+/* The old full-bleed cards used a heavy grey scrim that muddied the photos and
+   dropped text over the models' faces. Here the image is a clean framed tile and
+   the serial/name/count sit BELOW it on the bone canvas — consistent with the
+   product cards and far more "quiet luxury". */
+.category-card-block {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background-color: transparent;
+}
+.category-card-block::after { content: none; }
+
+/* Image tile: framed like the product cards (warm hairline + soft shadow), shown first */
+.category-thumbnail-block {
+  position: relative;
+  inset: auto;
+  order: -1;
+  width: 100%;
+  height: auto;            /* clear webflow's fixed 80px so aspect-ratio governs */
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: 10px;
+  border: 1px solid var(--_color---neutral-400);
+  background-color: var(--_color---white);
+  box-shadow: 0 1px 2px rgba(26, 23, 20, 0.05);
+  transition: box-shadow 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.45s ease;
+}
 .category-thumbnail {
   width: 100%;
   height: 100%;
   display: block;
+  object-fit: cover;
+  object-position: 50% 18%;
+  border-radius: 0;
+  transition: transform 0.7s cubic-bezier(.25, .46, .45, .94);
 }
 
-/* Arrow: long arrow starts off-screen left; short arrow starts centered.
-   Both clipped by overflow:hidden on .category-arrow (already in webflow.css). */
-.category-card-block {
-  transition: background-color 0.35s ease;
+/* Serial → small muted overline; name → serif ink */
+.category-card-title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
+.category-serial-number {
+  color: var(--_color---neutral-600);
+  opacity: 1;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.product-collection-name {
+  color: var(--_color---black);
+  transition: color 0.25s ease;
+}
+
+/* Count + arrow on a hairline-topped row below the name */
+.category-card-content-block {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 14px;
+  border-top: 1px solid var(--_color---neutral-400);
+}
+.product-amount-text { color: var(--_color---neutral-600); }
+.category-arrow {
+  color: var(--_color---black);
+  transition: color 0.25s ease;
+}
+
+/* Arrow swap: long arrow slides in from the left, short arrow slides out right */
 .link-icon.two { transform: translateX(-24px); transition: transform 0.35s ease; }
 .link-icon.one { transform: translateX(0px);   transition: transform 0.35s ease; }
 
-/* Hover state */
-.category-card-block:hover { background-color: #d4cbbf; }
-.category-card-block:hover .category-thumbnail-block { opacity: 1; }
+/* Hover: lift + frame the image, warm the name + arrow to brand red */
+.category-card-block:hover .category-thumbnail-block {
+  transform: translateY(-6px);
+  border-color: var(--_color---neutral-500);
+  box-shadow: 0 22px 46px -24px rgba(26, 23, 20, 0.35);
+}
+.category-thumbnail-block { transition: box-shadow 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+                                        border-color 0.45s ease,
+                                        transform 0.45s cubic-bezier(0.16, 1, 0.3, 1); }
+.category-card-block:hover .category-thumbnail { transform: scale(1.05); }
+.category-card-block:hover .product-collection-name,
+.category-card-block:hover .category-arrow { color: var(--_color---red-500); }
 .category-card-block:hover .link-icon.two { transform: translateX(0); }
 .category-card-block:hover .link-icon.one { transform: translateX(24px); }
+
+/* Respect reduced-motion: keep the visual change, drop the movement */
+@media (prefers-reduced-motion: reduce) {
+  .category-card-block:hover .category-thumbnail-block,
+  .category-thumbnail,
+  .category-card-block:hover .category-thumbnail { transform: none; }
+}
+
+/* ─── Category archive page: grid + header (these classes shipped with NO CSS,
+   so products stacked full-width). No sidebar here → a roomy 3-up product grid. ─── */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  column-gap: var(--grid-gap-2);
+  row-gap: 52px;
+}
+@media (max-width: 991px) {
+  .product-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 479px) {
+  .product-grid { grid-template-columns: 1fr; }
+}
+
+.shop-products-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 64px;
+  margin-bottom: 36px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--_color---neutral-400);
+}
+.shop-product-count {
+  font-size: var(--_font-sizes---body-text-small);
+  color: var(--_color---neutral-600);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.shop-back-link {
+  font-size: var(--_font-sizes---body-text-small);
+  color: var(--_color---black);
+  text-decoration: none;
+  letter-spacing: 0.02em;
+  transition: color 0.2s ease;
+}
+.shop-back-link:hover { color: var(--_color---red-500); }
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+  text-align: center;
+  padding: 64px 0;
+  color: var(--_color---neutral-600);
+}
 
 /* ─── Search page ─── */
 .search-page-form {
@@ -835,6 +1529,10 @@
   .checkout-block-header { padding: 14px 16px; }
 }
 
+.common-hero-section {
+  padding-top: 170px;
+}
+
 /* page-top-gap: compensate for absolute-positioned header on desktop */
 .page-top-gap {
   padding-top: 150px;
@@ -857,6 +1555,1557 @@
     padding-top: 24px;
   }
   .product-details-section.page-top-gap {
+    padding-top: 110px;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Ecommerce UX polish (additive — preserves Webflow classes)
+   ═══════════════════════════════════════════════════════════ */
+
+/* Screen-reader-only utility */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ─── PDP: real color swatches ─── */
+.pdp-swatch-group {
+  gap: 10px;
+}
+.pdp-color-swatch {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--_color---neutral-400);
+  border-radius: var(--_border-radius---radius-l);
+  background-color: var(--swatch, #ccc);
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  /* ring drawn with box-shadow so the active state causes no layout shift */
+  box-shadow: 0 0 0 0 var(--_color---white), 0 0 0 0 var(--_color---black);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.pdp-color-swatch.is-light {
+  border-color: var(--_color---neutral-500);
+}
+.pdp-color-swatch:hover {
+  transform: scale(1.06);
+}
+.pdp-color-swatch.active {
+  box-shadow: 0 0 0 2px var(--_color---white), 0 0 0 3.5px var(--_color---black);
+}
+
+/* ─── PDP: quantity stepper ─── */
+.pdp-qty-stepper {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--_color---black);
+  border-radius: var(--_border-radius---radius-l);
+  overflow: hidden;
+}
+.pdp-qty-btn {
+  width: 42px;
+  border: none;
+  background: var(--_color---white);
+  color: var(--_color---black);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.pdp-qty-btn:hover {
+  background: var(--_color---black);
+  color: var(--_color---white);
+}
+/* Strip the native number spinners so the custom buttons own the control */
+.pdp-qty-stepper .quantity {
+  -moz-appearance: textfield;
+  width: 52px;
+  text-align: center;
+  border: none;
+  margin: 0;
+  border-radius: 0;
+  border-left: 1px solid var(--_color---neutral-400);
+  border-right: 1px solid var(--_color---neutral-400);
+}
+.pdp-qty-stepper .quantity::-webkit-outer-spin-button,
+.pdp-qty-stepper .quantity::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* ─── PDP: add-to-cart confirmation state ─── */
+.add-to-card-button.is-added {
+  background-color: var(--_color---green-500, #14854e);
+  border-color: var(--_color---green-500, #14854e);
+  color: var(--_color---white);
+}
+.add-to-card-button:disabled {
+  cursor: default;
+}
+
+/* Add to Cart fills the row beside the qty stepper (was fixed-width via 130px side
+   padding, leaving a gap). Square it + the buy-now button + stepper for consistency
+   with the site's architectural button language. */
+.add-to-card-button {
+  flex: 1 1 auto;
+  padding-left: 28px;
+  padding-right: 28px;
+  border-radius: 2px;
+}
+.buy-now-button {
+  border-radius: 2px;
+}
+.pdp-qty-stepper {
+  border-radius: 2px;
+}
+
+/* ─── PDP: gallery hover-zoom ─── */
+.product-lightbox {
+  overflow: hidden;
+  cursor: zoom-in;
+  display: block;
+}
+.product-lightbox .product-image {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.product-lightbox:hover .product-image {
+  transform: scale(1.04);
+}
+
+/* ─── PDP: lightbox modal ─── */
+.pdp-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(20, 20, 20, 0.88);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  padding: 5vh 6vw;
+}
+.pdp-lightbox.open {
+  opacity: 1;
+  visibility: visible;
+}
+.pdp-lightbox-img {
+  max-width: 100%;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: var(--_border-radius---radius-s);
+}
+.pdp-lightbox-close,
+.pdp-lightbox-nav {
+  position: absolute;
+  background: var(--_color---white);
+  color: var(--_color---black);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.pdp-lightbox-close {
+  top: 24px;
+  right: 24px;
+  width: 44px;
+  height: 44px;
+  font-size: 18px;
+}
+.pdp-lightbox-nav {
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  font-size: 26px;
+}
+.pdp-lightbox-nav.prev { left: 24px; }
+.pdp-lightbox-nav.next { right: 24px; }
+.pdp-lightbox-close:hover,
+.pdp-lightbox-nav:hover {
+  background: var(--_color---black);
+  color: var(--_color---white);
+}
+@media (max-width: 479px) {
+  .pdp-lightbox-nav { width: 40px; height: 40px; font-size: 22px; }
+  .pdp-lightbox-nav.prev { left: 10px; }
+  .pdp-lightbox-nav.next { right: 10px; }
+  .pdp-lightbox-close { top: 12px; right: 12px; }
+}
+
+/* ─── PDP: rounded gallery images (match the card aesthetic) ─── */
+.product-lightbox {
+  border-radius: var(--_border-radius---radius-s);
+  /* The gallery photos carry a light-grey studio backdrop close in tone to the bone
+     canvas, so they blend in. Frame each with a warm hairline + soft shadow (matches
+     the product cards) so the imagery reads as distinct on the page. */
+  border: 1px solid var(--_color---neutral-400);
+  background-color: var(--_color---white);
+  box-shadow: 0 1px 2px rgba(26, 23, 20, 0.05);
+}
+
+/* ─── PDP: accordion dividers + open-state affordance ─── */
+/* Webflow's export references a deleted border-color variable, so the accordion
+   dividers never render — restore them with a real hairline. */
+.product-accordion-toggle {
+  border-top: 1px solid var(--_color---neutral-300);
+  border-bottom: 1px solid var(--_color---neutral-300);
+  cursor: pointer;
+}
+.product-accordion-title {
+  transition: color 0.2s ease;
+}
+.product-accordion-toggle:hover .product-accordion-title {
+  color: var(--_color---red-500);
+}
+/* Arrow flips to point up when the panel is open */
+.product-accordion-arrow {
+  transition: transform 0.3s ease;
+}
+.product-accordion.open .product-accordion-arrow {
+  transform: rotate(180deg);
+}
+/* Open panel: brand-red, heavier title makes the active section unmistakable */
+.product-accordion.open .product-accordion-title {
+  color: var(--_color---red-500);
+  font-weight: var(--_font-weight---semi-bold);
+}
+
+/* ─── PDP: compare price reads as a struck-through "was" price ─── */
+.product-details-compare-price {
+  text-decoration: line-through;
+}
+
+/* ─── PDP: group SKU/Category into a contained panel ─── */
+.product-meta-wrapper {
+  background-color: var(--_color---neutral-100);
+  border: 1px solid var(--_color---neutral-200);
+  border-radius: var(--_border-radius---radius-s);
+  padding: 16px 18px;
+  margin-top: 24px;
+  margin-bottom: 32px;
+}
+
+/* ─── PDP: reassurance / trust badges under the buy buttons ─── */
+.pdp-trust-row {
+  list-style: none;
+  margin: 24px 0 0;
+  padding: 20px 0 0;
+  border-top: 1px solid var(--_color---neutral-200);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pdp-trust-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: var(--_font-sizes---body-text-small);
+  color: var(--_color---neutral-600);
+}
+.pdp-trust-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+/* ─── Shop: filter result info + clear ─── */
+.shop-result-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.shop-clear-filter {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--_color---black);
+  font-family: var(--_font-family---font-famity-body);
+  font-size: var(--_font-sizes---body-text-small);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: opacity 0.2s ease;
+}
+.shop-clear-filter:hover { opacity: 0.6; }
+
+/* Gentle fade while filtering/sorting the active grid */
+.product-archive-grid-two {
+  transition: opacity 0.18s ease;
+}
+.product-archive-grid-two.is-filtering {
+  opacity: 0;
+}
+
+/* The sort form had no layout rule, so "Sort by:" stacked above the dropdown —
+   lay it out as an inline row, vertically centered beside the select */
+.product-selector-form {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-left: 18px;
+  border-left: 1px solid var(--_color---neutral-300);
+}
+
+/* ─── Shop archive: sticky sidebar + brand-accent filters ─── */
+/* Keep the filters/popular/banner in view while the long product grid scrolls */
+@media (min-width: 992px) {
+  .product-sidbar-wrapper {
+    position: sticky;
+    top: 120px;
+  }
+}
+
+/* Active category filter switches from flat black to brand red, and the label
+   warms + bolds so the current filter is unmistakable */
+.prodcut-sidebar-category-link.w--current {
+  background-color: var(--_color---red-500);
+  outline-color: var(--_color---red-500);
+}
+.prodcut-sidebar-category-name {
+  transition: color 0.2s ease;
+}
+.prodcut-sidebar-category-link:hover .prodcut-sidebar-category-name {
+  color: var(--_color---red-500);
+}
+.prodcut-sidebar-category-link.w--current .prodcut-sidebar-category-name {
+  color: var(--_color---red-500);
+  font-weight: var(--_font-weight---semi-bold);
+}
+
+/* Tabs: muted grey active → high-contrast black pill; inactive darken on hover */
+.product-archive-tab-menu-link {
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+}
+.product-archive-tab-menu-link:hover {
+  border-color: var(--_color---black);
+}
+.product-archive-tab-menu-link.w--current {
+  background-color: var(--_color---black);
+  border-color: var(--_color---black);
+  color: var(--_color---white);
+}
+
+/* Popular-products list: gentle thumbnail zoom + red title on hover */
+.popular-product-thumbnail {
+  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.popular-product-block:hover .popular-product-thumbnail {
+  transform: scale(1.07);
+}
+.popular-product-block .product-name {
+  transition: color 0.2s ease;
+}
+.popular-product-block:hover .product-name {
+  color: var(--_color---red-500);
+}
+
+/* ─── Visible focus rings for ecommerce controls ─── */
+.product-size-btn:focus-visible,
+.pdp-color-swatch:focus-visible,
+.pdp-qty-btn:focus-visible,
+.product-tab-link:focus-visible,
+.product-archive-tab-menu-link:focus-visible,
+.shop-clear-filter:focus-visible,
+.pdp-lightbox-close:focus-visible,
+.pdp-lightbox-nav:focus-visible {
+  outline: 2px solid var(--_color---black);
+  outline-offset: 2px;
+}
+.pdp-color-swatch:focus-visible {
+  outline-offset: 3px;
+}
+
+/* ─── Respect reduced-motion for the new interactions ─── */
+@media (prefers-reduced-motion: reduce) {
+  .product-lightbox .product-image,
+  .pdp-color-swatch,
+  .product-archive-grid-two,
+  .popular-product-thumbnail,
+  .product-accordion-arrow,
+  .pdp-lightbox { transition: none; }
+  .product-lightbox:hover .product-image,
+  .popular-product-block:hover .popular-product-thumbnail { transform: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Homepage design polish (additive — preserves Webflow classes)
+   ═══════════════════════════════════════════════════════════ */
+
+/* ─── Product card: hover image-swap + subtle zoom (all product sections) ─── */
+.product-thumbnail-block { overflow: hidden; }
+.product-secondary-thumbnail {
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.product-thumbnail-block:hover .product-secondary-thumbnail { opacity: 1; }
+.product-main-thumbnail,
+.product-secondary-thumbnail {
+  transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.product-thumbnail-block:hover .product-main-thumbnail,
+.product-thumbnail-block:hover .product-secondary-thumbnail { transform: scale(1.04); }
+
+/* Bundle section cards use their own thumbnail classes */
+.bundle-product-secondary-thumbnail { transition: opacity 0.5s ease; }
+.bundle-product-card-block .product-thumbnail-block:hover .bundle-product-secondary-thumbnail { opacity: 1; }
+.bundle-product-main-thumbnail { transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+.bundle-product-card-block .product-thumbnail-block:hover .bundle-product-main-thumbnail { transform: scale(1.04); }
+
+/* ─── Bundle & Save: soften the boxy frame into a premium panel + card polish ─── */
+.bundle-offer-grid {
+  border-color: var(--_color---neutral-300);
+  border-radius: 24px;
+  background-color: var(--_color---white);
+  box-shadow: 0 32px 72px -44px rgba(26, 23, 20, 0.3);
+}
+.bundle-offer-image {
+  border-radius: 16px;
+}
+.bundle-product-card-block {
+  border-radius: 16px;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.bundle-product-card-block:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 38px -24px rgba(26, 23, 20, 0.32);
+}
+/* Lighter divider above the swatch row */
+.bundle-product-tab-menu {
+  border-top-color: var(--_color---neutral-400);
+}
+@media (prefers-reduced-motion: reduce) {
+  .bundle-product-card-block:hover { transform: none; }
+}
+
+/* ─── Product card: premium fashion polish (shared across all product grids) ─── */
+/* Softer image framing + a quiet shadow lift on hover */
+.product-thumbnail-block {
+  border-radius: 10px;
+  /* The product photos carry a cool light-grey studio backdrop that's close in tone
+     to the bone canvas, so card edges disappear. A warm hairline + a soft resting
+     shadow frame each image and lift it cleanly off the page. */
+  border: 1px solid var(--_color---neutral-400);
+  background-color: var(--_color---white);
+  box-shadow: 0 1px 2px rgba(26, 23, 20, 0.05);
+  transition: box-shadow 0.45s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.45s ease;
+}
+.product-thumbnail-block:hover {
+  border-color: var(--_color---neutral-500);
+  box-shadow: 0 20px 44px -22px rgba(26, 23, 20, 0.38);
+}
+
+/* Editorial badges: flat architectural labels — no colored pills */
+.sale-badge {
+  background-color: var(--_color---black);
+  color: var(--_color---white);
+  border-radius: 2px;
+  padding: 4px 10px;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  box-shadow: none;
+}
+.discount-badge {
+  background-color: transparent;
+  color: var(--_color---neutral-600);
+  border: 1px solid var(--_color---neutral-400);
+  border-radius: 2px;
+  padding: 3px 9px;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  box-shadow: none;
+}
+
+/* Offers floating card: editorial shadow + warm hairline frame */
+.offerse-card-block {
+  background-color: var(--_color---white);
+  border: 1px solid var(--_color---neutral-300);
+  box-shadow: 0 4px 24px -6px rgba(26, 23, 20, 0.20), 0 1px 4px -1px rgba(26, 23, 20, 0.08);
+  border-radius: 4px;
+}
+
+/* Swatches: tighter rhythm under the image + interactive feedback */
+.product-tab-menu { margin-top: 16px; }
+.product-tab-link {
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+.product-tab-link:hover { transform: scale(1.12); }
+
+/* Name + price: cleaner vertical rhythm */
+.product-card-info-block { margin-top: 14px; }
+.product-card-pricing-block { margin-top: 5px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .product-tab-link:hover { transform: none; }
+}
+
+/* ─── Testimonial cards: editorial quote treatment + premium framing ─── */
+/* NB: the desktop marquee JS drives transform/opacity on .testimonial-card-block
+   inline, so this only touches background, radius, shadow, type + decorative bits. */
+.testimonial-card-block {
+  border-radius: 20px;
+  border: 1px solid var(--_color---neutral-200);
+  box-shadow: 0 24px 56px -34px rgba(26, 23, 20, 0.28);
+}
+/* Decorative opening quote mark above each testimonial */
+.testimonial-author-text::before {
+  content: "\201C";
+  display: block;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 60px;
+  line-height: 0.5;
+  color: var(--_color---red-500);
+  opacity: 0.22;
+  margin-bottom: 10px;
+}
+/* Softer author portrait + product thumbnail corners */
+.testimonial-image { border-radius: 16px; }
+.testimonial-product-thumbnail-block { border-radius: 12px; }
+/* Turn the referenced product into a subtle "shop this look" chip */
+.testimonial-product-block {
+  background-color: var(--_color---neutral-150);
+  border-radius: 14px;
+  padding: 12px 16px;
+  transition: background-color 0.3s ease;
+}
+.testimonial-product-block:hover {
+  background-color: var(--_color---neutral-300);
+}
+
+/* ─── Best Sellers: cohesive panel rounding, depth + brand-accent eyebrow ─── */
+.best-seller-banner-wrapper {
+  border-radius: 24px;
+  box-shadow: 0 26px 60px -40px rgba(26, 23, 20, 0.28);
+}
+.best-seller-image-block,
+.best-seller-bg-image {
+  border-radius: 16px;
+}
+/* Match the hero eyebrow: a short brand-red rule before the label */
+.best-seller-subtitle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.best-seller-subtitle::before {
+  content: "";
+  flex: none;
+  width: 28px;
+  height: 2px;
+  background-color: var(--_color---red-500);
+}
+
+/* ─── Image zoom-on-hover for banner / best-seller / gallery imagery ─── */
+.home-banner-image-block,
+.best-seller-image-block { overflow: hidden; }
+.home-banner-image,
+.best-seller-bg-image,
+/* webflow.css gives .gallery-image a width but no height; before the lazy images
+   load, the rows collapse to 0 — and a 0px-tall band never scrolls them into view,
+   so they never load (deadlock). Give them a fixed height so the band always has
+   size (and is tall enough for the centred 375px "@dojeen" badge). */
+.gallery-image {
+  height: 400px;
+  object-fit: cover;
+  border-radius: 10px;
+  box-shadow: 0 4px 24px rgba(26, 23, 20, 0.18);
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.home-banner:hover .home-banner-image,
+.best-seller-banner-wrapper:hover .best-seller-bg-image,
+.gallery-image:hover { transform: scale(1.05); }
+
+/* ─── Home about section: editorial image collage ─── */
+/* Content hierarchy: eyebrow → headline → excerpt → CTA, centered over the dark overlay */
+.home-about-eyebrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+.home-about-eyebrow-line {
+  width: 38px;
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.45);
+}
+.home-about-eyebrow-text {
+  color: rgba(255, 255, 255, 0.85);
+  font-family: var(--_font-family---font-famity-body);
+  font-size: var(--_font-sizes---body-text-small);
+  font-weight: var(--_font-weight---medium);
+  letter-spacing: var(--_letter-spacing---letter-space-2);
+  text-transform: uppercase;
+}
+.home-about-title {
+  letter-spacing: -0.02em;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.35); /* lift headline off the imagery */
+}
+.home-about-excerpt {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+/* Warm-ink overlay with a soft centre vignette (was a flat pure-black slab) —
+   gives the reveal depth and gently spotlights the centred headline. */
+.home-overlay {
+  background-color: var(--_color---neutral-800);
+  background-image: radial-gradient(120% 95% at 50% 34%,
+    #2a2521 0%, #211d19 45%, #1a1714 78%);
+}
+
+@media (max-width: 767px) {
+  /* Scroll wrapper is black on desktop (parallax bg) — reset to bone on mobile so the
+     margin gap between hero and about section shows in the page background color */
+  .home-scroll-wrapper {
+    background-color: var(--_color---neutral-100);
+  }
+  .home-about-section {
+    margin-top: 60px;
+    background-color: var(--_color---neutral-800);
+    border-radius: 12px;
+  }
+  /* Hide floating collage images — they overlap text at narrow widths */
+  .about-image {
+    display: none;
+  }
+  /* Remove blend-mode that makes the content block semi-transparent on mobile */
+  .home-about-content-block {
+    mix-blend-mode: normal;
+  }
+  /* Ensure the section dark background fills full width */
+  .home-about-wrapper {
+    width: 100%;
+  }
+}
+
+/* White button on the dark about imagery — invert fill so the hover slide still reads */
+.home-about-section .primary-button {
+  border-color: var(--_color---white);
+  background-color: var(--_color---white);
+  color: var(--_color---black);
+}
+.home-about-section .button-bg {
+  background-color: var(--_color---black);
+}
+.home-about-section .primary-button:hover {
+  color: var(--_color---white);
+}
+
+/* Refined imagery — fashion portraits with depth, framing the headline */
+.about-image {
+  object-fit: cover;
+  box-shadow: 0 28px 55px rgba(26, 23, 20, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: scale 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: translate;
+}
+.about-image:hover {
+  scale: 1.05; /* `scale` property composes with the float `translate` below */
+  box-shadow: 0 34px 70px rgba(26, 23, 20, 0.5);
+}
+
+/* Desktop: balanced, deliberate composition that frames the centered headline.
+   clamp() keeps the collage proportional across 992–1820px without extra breakpoints. */
+@media (min-width: 992px) {
+  .home-about-excerpt { max-width: 460px; }
+  .about-image.one {
+    width: clamp(160px, 15vw, 250px);
+    aspect-ratio: 3 / 4;
+    height: auto;
+    top: 8vh;
+    left: 3%;
+    border-radius: var(--_border-radius---radius-m);
+    border-bottom-right-radius: 500px;
+    animation: about-float 7s ease-in-out infinite;
+  }
+  .about-image.two {
+    width: clamp(135px, 13vw, 215px);
+    aspect-ratio: 3 / 4;
+    height: auto;
+    bottom: 9vh;
+    left: 7%;
+    border-radius: var(--_border-radius---radius-m);
+    animation: about-float 8.5s ease-in-out infinite 0.6s;
+  }
+  .about-image.three {
+    width: clamp(120px, 11vw, 180px);
+    aspect-ratio: 1 / 1;
+    height: auto;
+    top: 11vh;
+    right: 7%;
+    border-radius: 50%;
+    animation: about-float 7.5s ease-in-out infinite 1.1s;
+  }
+  .about-image.four {
+    width: clamp(165px, 15vw, 255px);
+    aspect-ratio: 3 / 4;
+    height: auto;
+    bottom: 8vh;
+    right: 3%;
+    border-radius: var(--_border-radius---radius-m);
+    animation: about-float 9s ease-in-out infinite 0.3s;
+  }
+  .about-image.five {
+    width: clamp(130px, 12vw, 195px);
+    aspect-ratio: 3 / 4;
+    height: auto;
+    bottom: -4vh;
+    right: 41%;
+    border-top-left-radius: 500px;
+    border-top-right-radius: 500px;
+    border-bottom-left-radius: var(--_border-radius---radius-s);
+    border-bottom-right-radius: var(--_border-radius---radius-s);
+    animation: about-float 8s ease-in-out infinite 1.4s;
+  }
+}
+
+@keyframes about-float {
+  0%, 100% { translate: 0 0; }
+  50%      { translate: 0 -14px; }
+}
+
+/* ─── Features cards: trust badges as refined cards ─── */
+/* Bare floating icons → soft cards with an icon badge and a polished hover lift */
+.features-card-block {
+  padding: 40px 24px 32px;
+  /* Card bg was bone (= page bg), so cards vanished behind a faint grey border.
+     Give them a white surface + warm hairline + soft shadow so they read cleanly. */
+  background-color: var(--_color---white);
+  border: 1px solid var(--_color---neutral-400);
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(26, 23, 20, 0.04);
+  transition: transform 0.3s ease, box-shadow 0.3s ease,
+              background-color 0.3s ease, border-color 0.3s ease;
+}
+.features-card-block:hover {
+  transform: translateY(-6px);
+  border-color: var(--_color---neutral-500);
+  box-shadow: 0 18px 40px rgba(26, 23, 20, 0.10);
+}
+/* Wrap the icon in a square badge that warms to brand red on hover */
+.features-icon {
+  width: 44px;
+  height: 44px;
+  padding: 15px;
+  box-sizing: content-box;
+  border-radius: 5px;
+  background-color: var(--_color---neutral-150);
+  box-shadow: inset 0 0 0 1px var(--_color---neutral-300);
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+.features-card-block:hover .features-icon {
+  background-color: rgba(188, 75, 60, 0.1);
+  transform: scale(1.06);
+}
+.feature-text {
+  color: var(--_color---neutral-600);
+}
+
+/* ─── Countdown timer: subtle tick on digit change ─── */
+.timer-counter-text.is-ticking { animation: timer-tick 0.4s ease; }
+@keyframes timer-tick {
+  0%   { transform: translateY(-6px); opacity: 0.4; }
+  100% { transform: translateY(0);    opacity: 1; }
+}
+
+/* ─── Countdown: glass tiles + refined labels (premium sale timer) ─── */
+/* A pop of brand red draws the eye to the offer on the dark panel */
+.timer-subtitle {
+  color: var(--_color---red-500);
+  font-weight: var(--_font-weight---semi-bold);
+}
+/* Drop the colon separators — the tiles carry the rhythm now */
+.timer-counter-separator { display: none; }
+.timer-wrapper {
+  width: auto;
+  gap: 14px;
+}
+.timer-inner-block {
+  min-width: 108px;
+  padding: 20px 14px 16px;
+  border-radius: 16px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  -webkit-backdrop-filter: blur(4px);
+          backdrop-filter: blur(4px);
+}
+.timer-counter-title {
+  color: var(--_color---neutral-400);
+  margin-top: 8px;
+  font-size: var(--_font-sizes---body-text-small);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+/* Brighten the column divider so it actually reads on black */
+.timer-separator-line {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+/* The CTA sits on the black panel where the default black-on-black secondary
+   button is invisible at rest — invert it (white outline, white→black fill on hover) */
+.timer-content-block .secondary-button {
+  border-color: var(--_color---white);
+  color: var(--_color---white);
+}
+.timer-content-block .button-bg.secondary {
+  background-color: var(--_color---white);
+}
+.timer-content-block .secondary-button:hover {
+  color: var(--_color---black);
+}
+
+/* ─── Badge marquee: pause on hover ─── */
+.badge-marquee-wrapper.is-paused .badge-marquee-inner { animation-play-state: paused; }
+
+/* ─── Visible focus rings for homepage interactive elements ─── */
+.category-card-block:focus-visible,
+.banner-circle-button:focus-visible,
+.product-slider-arrow:focus-visible,
+.partner-slider-arrow:focus-visible,
+.w-slider-dot:focus-visible,
+.text-link:focus-visible {
+  outline: 2px solid var(--_color---black);
+  outline-offset: 3px;
+}
+
+/* ─── Partner section: refined logo showcase ─── */
+.partner-section {
+  background-color: var(--_color---white);
+}
+
+/* Red accent bar above the heading, consistent with section language across homepage */
+.partner-title {
+  position: relative;
+}
+.partner-title::before {
+  content: '';
+  display: block;
+  width: 32px;
+  height: 2px;
+  background-color: var(--_color---red-500);
+  margin: 0 auto 20px;
+}
+
+/* Subtler, editorial description weight */
+.partner-details {
+  color: var(--_color---neutral-600);
+}
+
+/* Thin hairline above the logo strip — a visual breath between copy and logos */
+.partner-logo-wrapper {
+  position: relative;
+  padding-top: 40px;
+  margin-top: 8px;
+}
+.partner-logo-wrapper::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 56px;
+  height: 1px;
+  background-color: var(--_color---neutral-300);
+}
+
+/* Smooth opacity transition so JS active-class swaps feel polished */
+.partner-logo {
+  height: 40px;
+  opacity: 0.3;
+  transition: opacity 0.45s ease;
+}
+.partner-logo.active {
+  opacity: 1;
+}
+.partner-logo:hover {
+  opacity: 0.6;
+}
+
+/* Arrows: red brand accent on hover instead of the default black fill */
+.partner-slider-arrow {
+  border-color: var(--_color---neutral-300);
+  transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+}
+.partner-slider-arrow:hover {
+  background-color: var(--_color---red-500);
+  border-color: var(--_color---red-500);
+  color: var(--_color---white);
+}
+
+/* ─── Gallery section: living Instagram-style marquee + refined overlay ─── */
+/* The markup ships 3 identical image rows but no animation — they were meant to
+   scroll. Animate the wrapper by exactly one row's width for a seamless loop. */
+.gallery-wrapper {
+  width: -moz-max-content;
+  width: max-content;
+  animation: gallery-scroll 55s linear infinite;
+  will-change: transform;
+}
+@keyframes gallery-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(calc(-100% / 3)); }
+}
+/* Pause the drift while the user is engaging with the band */
+.gallery-main:hover .gallery-wrapper { animation-play-state: paused; }
+.gallery-main { overflow: visible; }
+/* Contain the marquee bleed at section level so no horizontal scrollbar appears */
+.gallery-section { overflow: hidden; padding-top: 30px; }
+#bundleAddToCartBtn { cursor: pointer; }
+
+
+/* Center overlay: depth via gradient + a hairline ring, instead of flat black */
+.gallery-content-block {
+  background-color: transparent;
+  background-image: radial-gradient(circle at center, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.78) 100%);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.22) inset,
+    0 24px 60px rgba(0, 0, 0, 0.35);
+  -webkit-backdrop-filter: blur(3px);
+          backdrop-filter: blur(3px);
+}
+.gallery-content-block .section-title {
+  letter-spacing: -0.01em;
+}
+.gallery-excerpt {
+  color: var(--_color---neutral-200);
+}
+/* Pill the "Shop Collection" link so the CTA reads as actionable on the photo */
+.gallery-content-block .text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  border-radius: var(--_border-radius---radius-l);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  color: var(--_color---white);
+  text-decoration: none;
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+.gallery-content-block .text-link:hover {
+  background-color: var(--_color---white);
+  border-color: var(--_color---white);
+  color: var(--_color---black);
+}
+
+/* ─── Common hero: trim the inner-page banner height ─── */
+/* Webflow ships a tall banner (min-height 570px + 120px top/bottom on desktop).
+   Bring it down to a more compact, modern proportion. */
+.common-hero-wrapper {
+  min-height: 340px;
+  padding-top: 70px;
+  padding-bottom: 70px;
+}
+
+/* webflow.css references the banner image as `../images/…`, which resolves to a
+   non-existent `src/images/` — so every CommonHero loses its photo and shows only a
+   grey gradient. Re-point to the real public path + a refined legibility gradient. */
+.common-hero-wrapper {
+  background-image:
+    linear-gradient(180deg, rgba(20, 18, 16, 0) 26%, rgba(20, 18, 16, 0.32) 52%, rgba(20, 18, 16, 0.66) 100%),
+    url('/images/common-hero-image-3.webp');
+  background-position: 50% 28%, 50% 28%;
+  background-size: cover, cover;
+  border-radius: var(--_border-radius---radius-m);
+  overflow: hidden;
+}
+.common-hero-wrapper.bg-one {
+  background-image:
+    linear-gradient(270deg, rgba(20, 18, 16, 0) 30%, rgba(20, 18, 16, 0.62) 100%),
+    url('/images/common-hero-image-1.webp');
+  background-position: 50% 28%, 50% 28%;
+  background-size: cover, cover;
+}
+.common-hero-wrapper.bg-two {
+  background-image:
+    linear-gradient(180deg, rgba(20, 18, 16, 0.28), rgba(20, 18, 16, 0.5)),
+    url('/images/common-hero-image-2.webp');
+  background-position: 50% 28%, 50% 28%;
+  background-size: cover, cover;
+}
+@media (min-width: 992px) {
+  .common-hero-wrapper {
+    min-height: 420px;
     padding-top: 80px;
+    padding-bottom: 80px;
+  }
+}
+
+/* ─── About page: gallery is JS-driven here, so cancel the homepage CSS marquee ─── */
+/* The homepage gallery scrolls via the CSS `gallery-scroll` animation, but the
+   About page drives #galleryWrapper with a RAF loop (transform on inner blocks).
+   Leaving both on would double the motion and jump — disable the CSS one here. */
+#galleryWrapper {
+  animation: none;
+}
+
+/* ─── About: "Why choose us" value cards ─── */
+/* Equal-width cards with a visible resting style (was bare centered text) */
+.why-choose-us-card-block {
+  flex: 1;
+  padding: 44px 28px;
+  background-color: var(--_color---neutral-100);
+  border: 1px solid var(--_color---neutral-200);
+  border-radius: 16px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease,
+              background-color 0.3s ease, border-color 0.3s ease;
+}
+.why-choose-us-card-block:hover {
+  transform: translateY(-6px);
+  background-color: var(--_color---white);
+  border-color: transparent;
+  box-shadow: 0 18px 40px rgba(26, 23, 20, 0.08);
+}
+/* White-filled icon ring pops against the card at rest; fills red on hover */
+.why-choose-us-icon-block {
+  width: 80px;
+  height: 80px;
+  background-color: var(--_color---white);
+  transition: background-color 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
+}
+/* On hover the icon ring fills brand red and the line-icon flips to white */
+.why-choose-us-card-block:hover .why-choose-us-icon-block {
+  background-color: var(--_color---red-500);
+  border-color: var(--_color---red-500);
+  transform: scale(1.05);
+}
+.why-choose-us-icon {
+  transition: filter 0.3s ease;
+}
+.why-choose-us-card-block:hover .why-choose-us-icon {
+  filter: brightness(0) invert(1);
+}
+
+/* ─── About: "Our story" timeline cards ─── */
+/* Round the images to match the card aesthetic and make the year readable as a
+   tasteful overlay on any photo */
+.our-story-section,
+.partner-section {
+  background-color: var(--_color---neutral-100);
+}
+/* overlay edge mask must match the section bg */
+.our-story-side-overlay {
+  background-color: var(--_color---neutral-100);
+}
+.our-story-image {
+  border-radius: var(--_border-radius---radius-s);
+}
+.our-story-year {
+  color: var(--_color---white);
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.45);
+  right: 24px;
+  bottom: 8px;
+}
+
+/* ─── Blog page ─── */
+/* Featured post was rendered in a 3-col grid as a cramped 1/3-width card.
+   Promote it to a full-width horizontal hero (image left, content right). */
+.featured-blog-section .blog-list {
+  grid-template-columns: 1fr;
+}
+.featured-blog-section .blog-card-block {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: 36px;
+  align-items: stretch;
+}
+.featured-blog-section .blog-thumbnail-block {
+  height: 100%;
+  margin-top: 0;
+}
+.featured-blog-section .blog-thumbnail {
+  height: 100%;
+  object-fit: cover;
+}
+.featured-blog-section .blog-card-content-block {
+  margin-top: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 36px;
+}
+@media (max-width: 767px) {
+  .featured-blog-section .blog-card-block {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .featured-blog-section .blog-thumbnail { height: auto; }
+}
+
+/* Blog cards: framed white panel — stands off the bone canvas (matches product cards) */
+.blog-card-block {
+  border-radius: var(--_border-radius---radius-s);
+  border: 1px solid var(--_color---neutral-400);
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(26, 23, 20, 0.05);
+  transition: box-shadow 0.45s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.45s ease;
+}
+.blog-card-block:hover {
+  border-color: var(--_color---neutral-500);
+  box-shadow: 0 20px 44px -22px rgba(26, 23, 20, 0.38);
+}
+
+/* Blog cards: thumbnail zoom + red title on hover (matches product cards) */
+.blog-thumbnail {
+  display: block;
+  width: 100%;
+  transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.blog-card-block:hover .blog-thumbnail {
+  transform: scale(1.05);
+}
+.blog-card-title {
+  transition: color 0.2s ease;
+}
+.blog-card-block:hover .blog-card-title {
+  color: var(--_color---red-500);
+}
+/* Category meta link warms to red on hover */
+.blog-meta-link-block:hover .blog-meta-text {
+  color: var(--_color---red-500);
+  opacity: 1;
+}
+
+/* Tabs: muted grey active → high-contrast black pill (consistent with shop) */
+.blog-tab-menu-link {
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+}
+.blog-tab-menu-link:hover {
+  border-color: var(--_color---black);
+}
+.blog-tab-menu-link.w--current {
+  background-color: var(--_color---black);
+  border-color: var(--_color---black);
+  color: var(--_color---white);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Blog details — editorial article layout
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Hero image: wide cinematic frame ── */
+.blog-main-image-block {
+  border-radius: 10px;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background-color: var(--_color---white);
+  border: 1px solid var(--_color---neutral-400);
+  box-shadow: 0 4px 24px rgba(26, 23, 20, 0.10), 0 1px 2px rgba(26, 23, 20, 0.05);
+  margin-bottom: 48px;
+}
+.blog-main-image-block .blog-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ── Post header: elegant centered editorial layout ── */
+.blog-details-header-block {
+  max-width: 740px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-bottom: 48px;
+  border-bottom: 1px solid var(--_color---neutral-300);
+  margin-bottom: 0;
+}
+.blog-details-meta-wrapper {
+  margin-bottom: 20px;
+}
+.blog-main-title {
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+}
+
+/* ── Reading column: optimal 65-char line length ── */
+.blog-details-rich-text {
+  max-width: 740px;
+  margin-top: 52px;
+}
+
+/* Body text: comfortable size, generous line-height for long-form reading */
+.blog-details-rich-text p {
+  font-size: 17px;
+  line-height: 1.85;
+  color: var(--_color---neutral-700);
+}
+
+/* Section headings: breathing room above, tight tracking for the editorial serif */
+.blog-details-rich-text h2 {
+  margin-top: 60px;
+  margin-bottom: 20px;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--_color---black);
+}
+.blog-details-rich-text h3 {
+  margin-top: 44px;
+  margin-bottom: 16px;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+  color: var(--_color---black);
+}
+
+/* ── Figures: contained framing — the image sits in a white card ── */
+.blog-details-rich-text figure {
+  margin-top: 52px;
+  margin-bottom: 52px;
+  border-radius: 10px;
+  overflow: hidden;
+  background-color: var(--_color---white);
+  border: 1px solid var(--_color---neutral-400);
+  box-shadow: 0 4px 24px rgba(26, 23, 20, 0.10), 0 1px 2px rgba(26, 23, 20, 0.05);
+}
+.blog-details-rich-text figure img {
+  /* Image inside figure: let the figure's border/shadow do the framing;
+     remove the standalone image rules so there's no double-border */
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  margin: 0;
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Figcaption: centered muted italic note below the image */
+.blog-details-rich-text figcaption {
+  padding: 14px 24px 16px;
+  font-size: 13px;
+  font-style: italic;
+  color: var(--_color---neutral-600);
+  text-align: center;
+  border-top: 1px solid var(--_color---neutral-300);
+  background-color: var(--_color---neutral-100);
+  line-height: 1.6;
+}
+
+/* Standalone images (not inside figure): framed like gallery images */
+.blog-details-rich-text img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--_border-radius---radius-s);
+  background-color: var(--_color---white);
+  border: 1px solid var(--_color---neutral-400);
+  box-shadow: 0 2px 8px rgba(26, 23, 20, 0.08), 0 1px 2px rgba(26, 23, 20, 0.05);
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+
+/* ── Blockquote: centered pull-quote with a red oversized mark ── */
+.blog-details-rich-text blockquote {
+  margin: 52px 0;
+  padding: 36px 40px 32px;
+  background-color: var(--_color---white);
+  border: 1px solid var(--_color---neutral-300);
+  border-left: 4px solid var(--_color---red-500);
+  border-radius: 0 6px 6px 0;
+  box-shadow: 0 2px 12px rgba(26, 23, 20, 0.06);
+  position: relative;
+}
+.blog-details-rich-text blockquote p {
+  font-size: 19px;
+  font-style: italic;
+  line-height: 1.65;
+  color: var(--_color---neutral-700);
+  margin-bottom: 0;
+}
+.blog-details-rich-text blockquote::before {
+  content: '\201C';
+  position: absolute;
+  top: 12px;
+  left: 16px;
+  font-family: Georgia, serif;
+  font-size: 72px;
+  line-height: 1;
+  color: var(--_color---red-500);
+  opacity: 0.18;
+}
+
+/* ── In-body links ── */
+.blog-details-rich-text a {
+  color: var(--_color---red-500);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: opacity 0.2s ease;
+}
+.blog-details-rich-text a:hover { opacity: 0.7; }
+
+/* ── Lists ── */
+.blog-details-rich-text ul,
+.blog-details-rich-text ol {
+  margin-bottom: 40px;
+  padding-left: 22px;
+}
+.blog-details-rich-text ul { list-style: disc; }
+.blog-details-rich-text ol { list-style: decimal; }
+.blog-details-rich-text li {
+  margin-bottom: 10px;
+  font-size: 17px;
+  line-height: 1.8;
+  color: var(--_color---neutral-700);
+}
+.blog-details-rich-text li::marker { color: var(--_color---red-500); }
+
+/* Hairline divider above the related-articles block on the post page */
+.blog-details-section + .blog-section .container-default {
+  border-top: 1px solid var(--_color---neutral-200);
+  padding-top: var(--section-gap-small, 80px);
+}
+
+/* ─── Reduced-motion: calm, static homepage ─── */
+@media (prefers-reduced-motion: reduce) {
+  /* Scroll-reveal elements appear immediately */
+  .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+
+  /* Stop continuous marquees */
+  .badge-marquee-inner,
+  .footer-marquee-inner,
+  .gallery-wrapper,
+  .home-hero-marquee-inner { animation: none !important; transform: none !important; }
+
+  /* Keep the about-section content visible (overrides the desktop scroll-reveal init) */
+  .home-about-eyebrow,
+  .home-about-title,
+  .home-about-excerpt,
+  .home-about-section .button-wrapper { opacity: 1 !important; transform: none !important; }
+
+  /* Stop the floating collage animation; keep images visible + static (overrides pre-JS hide) */
+  .about-image {
+    animation: none !important;
+    translate: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+  .about-image:hover { scale: none; }
+
+  /* Disable the new hover zooms/lifts */
+  .product-thumbnail-block:hover .product-main-thumbnail,
+  .product-thumbnail-block:hover .product-secondary-thumbnail,
+  .bundle-product-card-block .product-thumbnail-block:hover .bundle-product-main-thumbnail,
+  .home-banner:hover .home-banner-image,
+  .best-seller-banner-wrapper:hover .best-seller-bg-image,
+  .gallery-image:hover,
+  .features-card-block:hover,
+  .features-card-block:hover .features-icon,
+  .why-choose-us-card-block:hover,
+  .why-choose-us-card-block:hover .why-choose-us-icon-block,
+  .blog-card-block:hover .blog-thumbnail,
+  .footer-link:hover,
+  .footer-social-link-block:hover { transform: none; }
+  .features-card-block:hover { box-shadow: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Hero entrance — orchestrated staggered cascade (premium first impression)
+   ───────────────────────────────────────────────────────────────────────────
+   The shared .reveal system fires every hero item in the same frame on load
+   (on-screen [data-stagger] containers get .visible with no per-child delay), so
+   the hero "pops" all at once. Here each child gets its own delay + a refined
+   curve so the hero assembles as an elegant cascade: eyebrow → headline (rising
+   out of a soft blur) → copy → stats → buttons. Selectors are container-scoped
+   for specificity, so they win regardless of source order.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.home-hero-contact-block .reveal {
+  transition: opacity 0.95s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.95s cubic-bezier(0.16, 1, 0.3, 1),
+              filter 0.95s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.home-hero-contact-block .home-hero-subtitle-block.reveal   { transition-delay: 0.10s; }
+.home-hero-contact-block .home-hero-title.reveal            { transition-delay: 0.24s; }
+.home-hero-contact-block .home-hero-excerpt.reveal          { transition-delay: 0.44s; }
+.home-hero-contact-block .home-hero-funfact-wrapper.reveal  { transition-delay: 0.58s; }
+.home-hero-contact-block .button-wrapper.reveal             { transition-delay: 0.72s; }
+
+/* Headline rises a touch further and clears a soft blur for an editorial focus-in */
+.home-hero-contact-block .home-hero-title.reveal {
+  transform: translateY(80px);
+  filter: blur(10px);
+}
+.home-hero-contact-block .home-hero-title.reveal.visible {
+  transform: translateY(0);
+  filter: blur(0);
+}
+
+/* The brand-red eyebrow rule draws itself in just after the eyebrow appears */
+.home-hero-contact-block .home-hero-subtitle-line {
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.34s;
+}
+.home-hero-contact-block .home-hero-subtitle-block.reveal.visible .home-hero-subtitle-line {
+  transform: scaleX(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-hero-contact-block .reveal {
+    transition-delay: 0s !important;
+    filter: none !important;
+  }
+  .home-hero-contact-block .home-hero-subtitle-line {
+    transform: scaleX(1) !important;
+    transition: none !important;
+  }
+}
+
+/* ─── Back to Top ─── */
+#backToTop {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: var(--_color---black);
+  color: var(--_color---white);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.3s ease, transform 0.3s ease, background-color 0.25s ease;
+  pointer-events: none;
+  z-index: 999;
+  box-shadow: 0 4px 20px rgba(26, 23, 20, 0.22);
+}
+#backToTop.visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+#backToTop:hover {
+  background-color: var(--_color---red-500);
+}
+
+/* ─── Order Confirmation Page ─── */
+.order-confirmation-section {
+  position: relative;
+  overflow: hidden;
+}
+.order-confirmation-section::before {
+  content: '';
+  position: absolute;
+  width: 640px;
+  height: 640px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(20, 133, 78, 0.07) 0%, transparent 68%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.order-confirmation-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 580px;
+  margin: 0 auto;
+  padding: 60px 24px 100px;
+}
+.order-confirmation-icon-block {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background-color: var(--_color---green-500);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 36px;
+  box-shadow: 0 8px 32px rgba(20, 133, 78, 0.28);
+  animation: confirm-pop 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.order-confirmation-check {
+  color: var(--_color---white);
+  font-size: 42px;
+  line-height: 1;
+  font-weight: 700;
+}
+@keyframes confirm-pop {
+  0%  { transform: scale(0.3); opacity: 0; }
+  65% { transform: scale(1.08); }
+  100%{ transform: scale(1);   opacity: 1; }
+}
+.order-confirmation-title {
+  font-size: clamp(36px, 4vw, 56px);
+  font-family: var(--_font-family---font-famity-heading);
+  color: var(--_color---black);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin-bottom: 16px;
+}
+.order-confirmation-excerpt {
+  font-size: 16px;
+  color: var(--_color---neutral-600);
+  line-height: 1.75;
+  max-width: 440px;
+  margin: 0 auto 44px;
+}
+.order-confirmation-info-block {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 52px;
+  width: 100%;
+  justify-content: center;
+}
+.order-info-item {
+  flex: 1;
+  max-width: 220px;
+  background-color: var(--_color---neutral-150);
+  border: 1px solid var(--_color---neutral-300);
+  border-radius: 12px;
+  padding: 24px 28px;
+  text-align: left;
+}
+.order-info-label {
+  font-size: 11px;
+  color: var(--_color---neutral-600);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+.order-info-value {
+  font-size: 16px;
+  color: var(--_color---black);
+  font-weight: 600;
+  line-height: 1.3;
+}
+@media (max-width: 479px) {
+  .order-confirmation-info-block {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .order-info-item {
+    max-width: 100%;
+    text-align: center;
   }
 }
