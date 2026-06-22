@@ -55,6 +55,7 @@
   --_font-sizes---heading-1: clamp(40px, 4.4vw, 56px);
 }
 
+
 /* Warm bone page canvas (webflow.css paints body/page-wrapper white) */
 body,
 .page-wrapper {
