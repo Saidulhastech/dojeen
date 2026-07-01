@@ -4,39 +4,33 @@ import Header from '@/components/layout/Header.astro';
 import Footer from '@/components/layout/Footer.astro';
 import ProductCard from '@/components/sections/ProductCard.astro';
 import { swatchColor } from '@/lib/colors';
-import { getFeaturedProducts, getBestSellers, getSaleProducts } from '@/data/products';
-import { categories } from '@/data/categories';
+import { img } from '@/lib/img';
+import { getFeaturedProducts, getBestSellers, getSaleProducts, getCategories } from '@/lib/catalog';
 import { getFeaturedPosts } from '@/data/blog';
 import { testimonials } from '@/data/testimonials';
 import { partners } from '@/data/partners';
 import { features } from '@/data/features';
 
-const featuredProducts = getFeaturedProducts();
-const bestSellers = getBestSellers();
-const saleProducts = getSaleProducts().slice(0, 4);
+const [featuredProducts, bestSellers, saleProducts, categories] = await Promise.all([
+  getFeaturedProducts(8),
+  getBestSellers(8),
+  getSaleProducts(4),
+  getCategories(),
+]);
 const featuredPosts = getFeaturedPosts();
 
-// Cart payload for the "Add Bundle to Cart" button — one line per bundle product,
-// using each product's first size/color as the default variant (mirrors the PDP id format).
-const bundleCartItems = saleProducts.map((p) => {
-  const size = p.sizes[0] ?? '';
-  const color = p.colors[0] ?? '';
-  return {
-    id: `${p.slug}-${size}-${color}`,
-    slug: p.slug,
-    name: p.name,
-    price: p.price,
-    image: `/images/${p.thumbnail}`,
-    quantity: 1,
-    size,
-    color,
-  };
-});
+// Cart payload for the "Add Bundle to Cart" button — one line per bundle
+// product, using each product's default Shopify variant.
+const bundleCartItems = saleProducts
+  .filter((p) => p.variantId)
+  .map((p) => ({ merchandiseId: p.variantId as string, quantity: 1 }));
 ---
 
 <BaseLayout title="Dojeen - Modern Fashion E-Commerce Template" description="Discover our latest collection where fluid design meets architectural precision. Each piece is crafted to move with you.">
+  <!-- Preload the LCP hero image so it starts downloading before the <img> is parsed -->
+  <link slot="head" rel="preload" as="image" href="/images/home-hero-image-new-2.jpg" fetchpriority="high" />
   <Header variant="homepage" currentPath="/" />
-  <main class="main-wrapper">
+  <main id="main-content" class="main-wrapper">
 
     <!-- Hero Section -->
     <div id="hero-section" class="home-scroll-wrapper">
@@ -159,7 +153,7 @@ const bundleCartItems = saleProducts.map((p) => {
                         <h3 class="product-collection-name">{cat.name}</h3>
                       </div>
                       <div class="category-thumbnail-block">
-                        <img loading="lazy" src={`/images/${cat.thumbnail}`} alt={`${cat.name} Thumbnail`} class="category-thumbnail" />
+                        <img loading="lazy" src={img(cat.thumbnail)} alt={`${cat.name} Thumbnail`} class="category-thumbnail" />
                       </div>
                       <div class="category-card-content-block">
                         <div class="product-amount-text">{cat.productCount} Items</div>
@@ -437,18 +431,18 @@ const bundleCartItems = saleProducts.map((p) => {
                                   <div class="product-tab-content w-tab-content">
                                     <div class="product-tab-pane w-tab-pane w--tab-active" data-tab="1">
                                       <a href={`/products/${product.slug}`} class="product-thumbnail-block w-inline-block">
-                                        <img loading="lazy" src={`/images/${product.thumbnail}`} alt={product.name} class="bundle-product-main-thumbnail" />
-                                        <img loading="lazy" src={`/images/${product.thumbnailHover}`} alt={product.name} class="bundle-product-secondary-thumbnail" />
+                                        <img loading="lazy" src={img(product.thumbnail)} alt={product.name} class="bundle-product-main-thumbnail" />
+                                        <img loading="lazy" src={img(product.thumbnailHover)} alt={product.name} class="bundle-product-secondary-thumbnail" />
                                       </a>
                                     </div>
                                     <div class="product-tab-pane w-tab-pane" data-tab="2">
                                       <a href={`/products/${product.slug}`} class="product-thumbnail-block w-inline-block">
-                                        <img loading="lazy" src={`/images/${product.thumbnailHover}`} alt={product.name} class="bundle-product-main-thumbnail" />
+                                        <img loading="lazy" src={img(product.thumbnailHover)} alt={product.name} class="bundle-product-main-thumbnail" />
                                       </a>
                                     </div>
                                     <div class="product-tab-pane w-tab-pane" data-tab="3">
                                       <a href={`/products/${product.slug}`} class="product-thumbnail-block w-inline-block">
-                                        <img loading="lazy" src={`/images/${bundleImg3}`} alt={product.name} class="bundle-product-main-thumbnail" />
+                                        <img loading="lazy" src={img(bundleImg3)} alt={product.name} class="bundle-product-main-thumbnail" />
                                       </a>
                                     </div>
                                   </div>
@@ -1391,7 +1385,9 @@ const bundleCartItems = saleProducts.map((p) => {
 
 <script>
   /* ── Bundle & Save: add every bundle product to the cart in one click ── */
-  import { addToCart, type CartItem } from '@/lib/cart';
+  import { addItem } from '@/lib/cart';
+
+  interface BundleLine { merchandiseId: string; quantity: number }
 
   const bundleBtn = document.getElementById('bundleAddToCartBtn') as HTMLButtonElement | null;
   if (bundleBtn) {
@@ -1399,8 +1395,8 @@ const bundleCartItems = saleProducts.map((p) => {
     const defaultLabel = textEl?.textContent || 'Add Bundle to Cart';
     let resetTimer: number | undefined;
 
-    bundleBtn.addEventListener('click', () => {
-      let items: CartItem[] = [];
+    bundleBtn.addEventListener('click', async () => {
+      let items: BundleLine[] = [];
       try {
         items = JSON.parse(bundleBtn.dataset.bundleItems || '[]');
       } catch {
@@ -1408,22 +1404,20 @@ const bundleCartItems = saleProducts.map((p) => {
       }
       if (!items.length) return;
 
-      items.forEach((item) => addToCart(item));
+      bundleBtn.disabled = true;
+      // Add all but the last silently; the last opens the drawer once.
+      for (let i = 0; i < items.length; i++) {
+        await addItem(items[i].merchandiseId, items[i].quantity, { open: i === items.length - 1 });
+      }
 
-      // Brief confirmation state, then open the drawer so the user sees the result
       window.clearTimeout(resetTimer);
       bundleBtn.classList.add('is-added');
-      bundleBtn.disabled = true;
       if (textEl) textEl.textContent = `Added ${items.length} Items ✓`;
       resetTimer = window.setTimeout(() => {
         bundleBtn.classList.remove('is-added');
         bundleBtn.disabled = false;
         if (textEl) textEl.textContent = defaultLabel;
       }, 1500);
-
-      if (typeof (window as any).__dojeenOpenCart === 'function') {
-        (window as any).__dojeenOpenCart();
-      }
     });
   }
 </script>

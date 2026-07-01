@@ -4,59 +4,269 @@ import Header from '@/components/layout/Header.astro';
 import Footer from '@/components/layout/Footer.astro';
 import CommonHero from '@/components/ui/CommonHero.astro';
 import ProductCard from '@/components/sections/ProductCard.astro';
-import { categories } from '@/data/categories';
-import { getProductsByCategory } from '@/data/products';
-import type { Category } from '@/types';
+import { getCategoryCollection } from '@/lib/catalog';
+import { adaptCard } from '@/lib/shopify/adapter';
+import { COLLECTION_SORT_OPTIONS, resolveSort } from '@/lib/shopify';
+import { buildFacetChips } from '@/lib/facet-chips';
 
-interface Props {
-  category: Category;
+export const prerender = false;
+
+const PAGE_SIZE = 24;
+const handle = Astro.params.category!;
+const params = Astro.url.searchParams;
+
+// ── Sort ──
+const sort = resolveSort(COLLECTION_SORT_OPTIONS, params.get('sort'));
+
+// ── Facet filters → Shopify ProductFilter inputs ──
+const selectedFilterInputs = params.getAll('filter');
+const filters: unknown[] = [];
+for (const raw of selectedFilterInputs) {
+  try {
+    filters.push(JSON.parse(raw));
+  } catch {
+    /* skip malformed filter param */
+  }
+}
+const priceMin = params.get('price_min');
+const priceMax = params.get('price_max');
+const price: { min?: number; max?: number } = {};
+if (priceMin && Number.isFinite(Number(priceMin))) price.min = Number(priceMin);
+if (priceMax && Number.isFinite(Number(priceMax))) price.max = Number(priceMax);
+if (price.min != null || price.max != null) filters.push({ price });
+
+// ── Cursor pagination ──
+const after = params.get('after');
+const before = params.get('before');
+
+const collection = await getCategoryCollection(handle, {
+  limit: PAGE_SIZE,
+  sortKey: sort.sortKey,
+  reverse: sort.reverse,
+  filters: filters.length ? filters : undefined,
+  after,
+  before,
+});
+
+if (!collection) {
+  return Astro.redirect('/404');
 }
 
-export const getStaticPaths = () => {
-  return categories.map((cat) => ({
-    params: { category: cat.slug },
-    props: { category: cat },
-  }));
-};
+const category = { slug: collection.handle, name: collection.title };
+const categoryProducts = collection.products.items.map(adaptCard);
+const facets = collection.filters ?? [];
+const pageInfo = collection.products.pageInfo;
+const ogImage = collection.image?.url || '/og-image.jpg';
 
-const { category } = Astro.props;
-const categoryProducts = getProductsByCategory(category.slug);
+const activeFilterCount = filters.length;
+const chips = buildFacetChips({
+  facets,
+  selectedFilterInputs,
+  priceMin,
+  priceMax,
+  currencyCode: categoryProducts[0]?.currencyCode,
+  pathname: Astro.url.pathname,
+  search: Astro.url.search,
+});
+
+// Build a URL on this path with the given param overrides (null = remove).
+function buildUrl(overrides: Record<string, string | null>): string {
+  const sp = new URLSearchParams(params.toString());
+  sp.delete('after');
+  sp.delete('before');
+  for (const [k, v] of Object.entries(overrides)) {
+    if (v == null) sp.delete(k);
+    else sp.set(k, v);
+  }
+  const qs = sp.toString();
+  return Astro.url.pathname + (qs ? `?${qs}` : '');
+}
+
+const nextUrl = pageInfo.hasNextPage && pageInfo.endCursor ? buildUrl({ after: pageInfo.endCursor }) : null;
+const prevUrl = pageInfo.hasPreviousPage && pageInfo.startCursor ? buildUrl({ before: pageInfo.startCursor }) : null;
+const clearUrl = Astro.url.pathname;
 ---
 
-<BaseLayout title={`${category.name} — Dojeen Shop`} description={`Browse our ${category.name} collection.`}>
+<BaseLayout
+  title={`${category.name} — Dojeen Shop`}
+  description={collection.description || `Browse our ${category.name} collection.`}
+  ogImage={ogImage}
+>
   <Header variant="default" />
-  <main class="main-wrapper">
+  <main id="main-content" class="main-wrapper">
 
     <CommonHero subtitle="Category" title={category.name} />
 
-    <section class="shop-section">
-      <div class="section-gap-bottom">
+    <section class="product-archive-section">
+      <div class="section-gap">
         <div class="w-layout-blockcontainer container-default w-container">
-          <div class="shop-products-header">
-            <div class="shop-product-count">{categoryProducts.length} Products</div>
-            <a href="/shop" class="shop-back-link">← All Products</a>
-          </div>
-          {categoryProducts.length > 0 ? (
-            <div class="product-grid">
-              {categoryProducts.map((product) => (
-                <div class="product-collection-item">
-                  <div class="product-card-block">
-                    <ProductCard product={product} headingTag="h3" />
+
+          <form method="get" action={Astro.url.pathname} id="facetForm" class="product-wrapper-with-sidebar">
+
+            <!-- Sidebar: facet filters -->
+            <div class="product-sidbar-main">
+              <div class="product-sidebar-mobile-accordion">
+                <button type="button" class="product-filter" id="sidebarToggle" aria-expanded="false" aria-controls="sidebarInner" aria-haspopup="dialog">
+                  <div class="product-sidebar-accordion-text">
+                    Filter{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
+                  </div>
+                  <img src="/images/accordion-arrow.svg" loading="lazy" alt="Filter Arrow" class="product-sidebar-accordion-arrow" />
+                </button>
+              </div>
+
+              <!-- Mobile drawer overlay (hidden on desktop) -->
+              <div class="filter-drawer-overlay" id="filterDrawerOverlay" data-filter-close></div>
+
+              <div class="product-sidebar-inner-wrapper" id="sidebarInner" aria-label="Product filters">
+                <!-- Drawer header (mobile only) -->
+                <div class="filter-drawer-head">
+                  <span class="filter-drawer-title">Filters</span>
+                  <button type="button" class="filter-drawer-close" data-filter-close aria-label="Close filters">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                      <path d="M15 1L1 15M1 1L15 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                    </svg>
+                  </button>
+                </div>
+
+                <div class="product-sidbar-wrapper">
+
+                  {chips.length > 0 && (
+                    <div class="product-sidebar-inner-block facet-active-block">
+                      <div class="facet-active-head">
+                        <span class="facet-active-count">Selected ({chips.length})</span>
+                        <a href={clearUrl} class="facet-clear-link">Clear all</a>
+                      </div>
+                      <div class="facet-chips">
+                        {chips.map((chip) => (
+                          <a href={chip.removeUrl} class="facet-chip" aria-label={`Remove ${chip.label}`}>
+                            <span class="facet-chip-label">{chip.label}</span>
+                            <span class="facet-chip-x" aria-hidden="true">×</span>
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {facets.length === 0 && (
+                    <div class="product-sidebar-inner-block">
+                      <div class="facet-empty">No filters available for this collection.</div>
+                    </div>
+                  )}
+
+                  {facets.map((facet) => (
+                    <div class="product-sidebar-inner-block">
+                      <div class="product-sidebar-title-block">
+                        <h2 class="product-sidebar-title">{facet.label}</h2>
+                      </div>
+
+                      {facet.type === 'PRICE_RANGE' ? (
+                        <div class="facet-price-row">
+                          <label class="facet-price-field">
+                            <span class="facet-price-label">Min</span>
+                            <input type="number" name="price_min" min="0" step="1" value={priceMin ?? ''} placeholder="0" class="facet-price-input" />
+                          </label>
+                          <span class="facet-price-sep">–</span>
+                          <label class="facet-price-field">
+                            <span class="facet-price-label">Max</span>
+                            <input type="number" name="price_max" min="0" step="1" value={priceMax ?? ''} placeholder="Any" class="facet-price-input" />
+                          </label>
+                        </div>
+                      ) : (
+                        <div class="facet-value-list">
+                          {facet.values.filter((v) => v.count > 0 || selectedFilterInputs.includes(v.input)).map((v) => (
+                            <label class="facet-value-row">
+                              <input
+                                type="checkbox"
+                                name="filter"
+                                value={v.input}
+                                checked={selectedFilterInputs.includes(v.input)}
+                                class="facet-checkbox"
+                              />
+                              <span class="facet-value-label">{v.label}</span>
+                              <span class="facet-value-count">{v.count}</span>
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+
+                  <noscript>
+                    <button type="submit" class="primary-button w-inline-block facet-apply">
+                      <div class="button-text-block"><div class="button-text">Apply filters</div></div>
+                      <div class="button-bg"></div>
+                    </button>
+                  </noscript>
+
+                </div>
+
+                <!-- Drawer footer (mobile only) -->
+                <div class="filter-drawer-foot">
+                  <a href={clearUrl} class="filter-drawer-clear facet-clear-link">Clear all</a>
+                  <button type="button" class="filter-drawer-apply" data-filter-close>
+                    View {categoryProducts.length} {categoryProducts.length === 1 ? 'result' : 'results'}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Main: sort bar + grid + pagination -->
+            <div class="product-archive-wrapper">
+
+              <div class="product-selector-form-block w-form">
+                <div class="shop-result-info">
+                  <span class="selector-text">{categoryProducts.length} {categoryProducts.length === 1 ? 'product' : 'products'}</span>
+                  <a href="/shop" class="shop-back-link">← All Products</a>
+                </div>
+                <div class="product-selector-form">
+                  <div class="selector-text">Sort by:</div>
+                  <select id="sortSelect" name="sort" class="product-select-input w-select">
+                    {COLLECTION_SORT_OPTIONS.map((opt) => (
+                      <option value={opt.value} selected={opt.value === sort.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {categoryProducts.length > 0 ? (
+                <div class="product-collection-list w-dyn-list">
+                  <div role="list" class="product-archive-grid-two w-dyn-items">
+                    {categoryProducts.map((product) => (
+                      <div role="listitem" class="product-collection-item w-dyn-item">
+                        <div class="product-card-block">
+                          <ProductCard product={product} headingTag="h3" />
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div class="empty-state">
-              <p>No products found in this category.</p>
-              <a href="/shop" class="primary-button w-inline-block">
-                <div class="button-text-block">
-                  <div class="button-text">Browse All</div>
+              ) : (
+                <div class="empty-state">
+                  <p>No products match these filters.</p>
+                  <a href={clearUrl} class="primary-button w-inline-block">
+                    <div class="button-text-block"><div class="button-text">Clear filters</div></div>
+                    <div class="button-bg"></div>
+                  </a>
                 </div>
-                <div class="button-bg"></div>
-              </a>
+              )}
+
+              {(nextUrl || prevUrl) && (
+                <div class="plp-pagination">
+                  {prevUrl ? (
+                    <a href={prevUrl} class="plp-page-btn" rel="prev">← Previous</a>
+                  ) : (
+                    <span class="plp-page-btn is-disabled" aria-disabled="true">← Previous</span>
+                  )}
+                  {nextUrl ? (
+                    <a href={nextUrl} class="plp-page-btn" rel="next">Next →</a>
+                  ) : (
+                    <span class="plp-page-btn is-disabled" aria-disabled="true">Next →</span>
+                  )}
+                </div>
+              )}
             </div>
-          )}
+          </form>
+
         </div>
       </div>
     </section>
@@ -64,3 +274,164 @@ const categoryProducts = getProductsByCategory(category.slug);
   </main>
   <Footer />
 </BaseLayout>
+
+<style>
+  /* The Webflow sort bar is absolutely positioned to overlay the (now-removed)
+     tab menu — anchor it as a normal header row above the product grid. */
+  .product-selector-form-block {
+    position: static;
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+  .facet-active-block {
+    padding: 14px 16px;
+  }
+  .facet-active-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .facet-active-count {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--_color---neutral-700);
+  }
+  .facet-clear-link {
+    font-size: 14px;
+    color: var(--_color---red-500);
+    text-decoration: underline;
+  }
+  .facet-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .facet-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border: 1px solid var(--_color---neutral-400);
+    border-radius: var(--_border-radius---radius-l);
+    background: var(--_color---neutral-100);
+    font-size: 13px;
+    line-height: 1.2;
+    color: var(--_color---neutral-800);
+    transition: border-color .2s ease, background-color .2s ease;
+  }
+  .facet-chip:hover {
+    border-color: var(--_color---red-500);
+    background: #fff;
+  }
+  .facet-chip-x {
+    font-size: 16px;
+    line-height: 1;
+    color: var(--_color---neutral-500);
+  }
+  .facet-chip:hover .facet-chip-x {
+    color: var(--_color---red-500);
+  }
+  .facet-empty {
+    font-size: 14px;
+    color: var(--_color---neutral-500);
+  }
+  .facet-value-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .facet-value-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 15px;
+    color: var(--_color---neutral-700);
+  }
+  .facet-checkbox {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--_color---red-500);
+    cursor: pointer;
+    flex: 0 0 auto;
+  }
+  .facet-value-label {
+    flex: 1 1 auto;
+  }
+  .facet-value-count {
+    color: var(--_color---neutral-500);
+    font-size: 13px;
+  }
+  .facet-price-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .facet-price-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1 1 0;
+  }
+  .facet-price-label {
+    font-size: 12px;
+    color: var(--_color---neutral-500);
+  }
+  .facet-price-input {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--_color---neutral-400);
+    border-radius: var(--_border-radius---radius-xs);
+    background: #fff;
+    font-size: 14px;
+  }
+  .facet-price-sep {
+    padding-bottom: 10px;
+    color: var(--_color---neutral-500);
+  }
+  .facet-apply {
+    margin-top: 8px;
+  }
+  .plp-pagination {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 40px;
+  }
+  .plp-page-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 12px 24px;
+    border: 1px solid var(--_color---neutral-400);
+    border-radius: var(--_border-radius---radius-xs);
+    font-size: 15px;
+    color: var(--_color---neutral-800);
+    background: #fff;
+    transition: background-color .2s ease, border-color .2s ease;
+  }
+  .plp-page-btn:hover {
+    border-color: var(--_color---neutral-800);
+  }
+  .plp-page-btn.is-disabled {
+    color: var(--_color---neutral-500);
+    background: var(--_color---neutral-200);
+    pointer-events: none;
+  }
+  .product-wrapper-with-sidebar.is-faceting {
+    opacity: .55;
+    pointer-events: none;
+    transition: opacity .15s ease;
+  }
+</style>
+
+<!-- AJAX faceting (filter/sort/price/pagination swap in place) -->
+<script>
+  import { initFacets } from '@/lib/facets';
+  initFacets();
+</script>

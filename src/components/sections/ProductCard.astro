@@ -1,6 +1,8 @@
 ---
 import type { Product } from '@/types';
 import { swatchColor } from '@/lib/colors';
+import { img, sizedImg, srcSet } from '@/lib/img';
+import { formatMoney } from '@/lib/money';
 
 interface Props {
   product: Product;
@@ -10,44 +12,98 @@ interface Props {
 const { product, headingTag = 'h3' } = Astro.props;
 const HeadingTag = headingTag;
 const img3 = product.images[0] ?? product.thumbnail;
+
+// Responsive image widths/sizes for grid cards (Shopify CDN resizes; local
+// assets fall back to their single src). One card ≈ 23vw desktop → 45vw tablet.
+const CARD_WIDTHS = [300, 400, 600, 800];
+const CARD_SIZES = '(max-width: 479px) 88vw, (max-width: 767px) 45vw, (max-width: 991px) 30vw, 23vw';
+
+// Compact snapshot stored when this card is added to the wishlist (image URLs
+// pre-resolved; includes variantId/inStock so the wishlist page can add to cart).
+const wishItem = {
+  slug: product.slug,
+  name: product.name,
+  price: product.price,
+  currencyCode: product.currencyCode,
+  isOnSale: !!product.isOnSale,
+  comparePrice: product.comparePrice ?? null,
+  discount: product.discount ?? 0,
+  thumbnail: img(product.thumbnail),
+  thumbnailHover: img(product.thumbnailHover || product.thumbnail),
+  variantId: product.variantId,
+  inStock: product.inStock,
+};
 ---
 
 <div class="product-tab-wrapper">
     <div class="prouct-card-tab w-tabs" data-product-slug={product.slug}>
       <div class="product-tab-content w-tab-content">
-        <div class="product-tab-pane w-tab-pane w--tab-active" data-tab="1">
-          <a href={`/products/${product.slug}`} class="product-thumbnail-block w-inline-block">
-            <img loading="lazy" src={`/images/${product.thumbnail}`} alt={product.name} class="product-main-thumbnail" />
-            <img loading="lazy" src={`/images/${product.thumbnailHover}`} alt={product.name} class="product-secondary-thumbnail" />
-          </a>
-        </div>
-        <div class="product-tab-pane w-tab-pane" data-tab="2">
-          <a href={`/products/${product.slug}`} class="product-thumbnail-block w-inline-block">
-            <img loading="lazy" src={`/images/${product.thumbnailHover}`} alt={product.name} class="product-main-thumbnail" />
-          </a>
-        </div>
-        <div class="product-tab-pane w-tab-pane" data-tab="3">
-          <a href={`/products/${product.slug}`} class="product-thumbnail-block w-inline-block">
-            <img loading="lazy" src={`/images/${img3}`} alt={product.name} class="product-main-thumbnail" />
-          </a>
-        </div>
+        {product.colors.length > 0 ? (
+          product.colors.slice(0, 3).map((color, i) => (
+            <div class={`product-tab-pane w-tab-pane${i === 0 ? ' w--tab-active' : ''}`} data-tab={String(i + 1)}>
+              <a href={`/products/${product.slug}`} class="product-thumbnail-block w-inline-block">
+                <img loading="lazy" src={sizedImg(product.colorImages[i] ?? product.thumbnail, 600)} srcset={srcSet(product.colorImages[i] ?? product.thumbnail, CARD_WIDTHS) || undefined} sizes={CARD_SIZES} alt={`${product.name} – ${color}`} class="product-main-thumbnail" />
+                <img loading="lazy" src={sizedImg(product.thumbnailHover, 600)} srcset={srcSet(product.thumbnailHover, CARD_WIDTHS) || undefined} sizes={CARD_SIZES} alt={product.name} class="product-secondary-thumbnail" />
+              </a>
+            </div>
+          ))
+        ) : (
+          <>
+            <div class="product-tab-pane w-tab-pane w--tab-active" data-tab="1">
+              <a href={`/products/${product.slug}`} class="product-thumbnail-block w-inline-block">
+                <img loading="lazy" src={sizedImg(product.thumbnail, 600)} srcset={srcSet(product.thumbnail, CARD_WIDTHS) || undefined} sizes={CARD_SIZES} alt={product.name} class="product-main-thumbnail" />
+                <img loading="lazy" src={sizedImg(product.thumbnailHover, 600)} srcset={srcSet(product.thumbnailHover, CARD_WIDTHS) || undefined} sizes={CARD_SIZES} alt={product.name} class="product-secondary-thumbnail" />
+              </a>
+            </div>
+            <div class="product-tab-pane w-tab-pane" data-tab="2">
+              <a href={`/products/${product.slug}`} class="product-thumbnail-block w-inline-block">
+                <img loading="lazy" src={sizedImg(product.thumbnailHover, 600)} srcset={srcSet(product.thumbnailHover, CARD_WIDTHS) || undefined} sizes={CARD_SIZES} alt={product.name} class="product-main-thumbnail" />
+              </a>
+            </div>
+            <div class="product-tab-pane w-tab-pane" data-tab="3">
+              <a href={`/products/${product.slug}`} class="product-thumbnail-block w-inline-block">
+                <img loading="lazy" src={sizedImg(img3, 600)} srcset={srcSet(img3, CARD_WIDTHS) || undefined} sizes={CARD_SIZES} alt={product.name} class="product-main-thumbnail" />
+              </a>
+            </div>
+          </>
+        )}
+        {product.variantId && (
+          <button
+            class="product-card-atc-btn"
+            data-variant-id={product.variantId}
+            disabled={!product.inStock}
+            aria-label={`Add ${product.name} to cart`}
+          >
+            {product.inStock ? 'Add to Cart' : 'Sold Out'}
+          </button>
+        )}
       </div>
-      <div class="product-tab-menu w-tab-menu">
-        <button class="product-tab-link w-inline-block w-tab-link w--current" data-target="1">
-          <div class="product-tab-block" style={`background-color:${swatchColor(product.colors[0] ?? '')}`}></div>
-        </button>
-        <button class="product-tab-link w-inline-block w-tab-link" data-target="2">
-          <div class="product-tab-block" style={`background-color:${swatchColor(product.colors[1] ?? '')}`}></div>
-        </button>
-        <button class="product-tab-link w-inline-block w-tab-link" data-target="3">
-          <div class="product-tab-block" style={`background-color:${swatchColor(product.colors[2] ?? '')}`}></div>
-        </button>
-      </div>
+      {product.colors.length > 0 && (
+        <div class="product-tab-menu w-tab-menu">
+          {product.colors.slice(0, 3).map((color, i) => (
+            <button class={`product-tab-link w-inline-block w-tab-link${i === 0 ? ' w--current' : ''}`} data-target={String(i + 1)} aria-label={`Show ${color} variant`}>
+              <div class="product-tab-block" style={`background-color:${swatchColor(color)}`}></div>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
     <div class="product-badge-wrapper">
       {product.isOnSale && <div class="sale-badge">Sale</div>}
       {(product.discount ?? 0) > 0 && <div class="discount-badge">-{product.discount}%</div>}
     </div>
+    <button
+      class="wishlist-heart-btn"
+      type="button"
+      data-slug={product.slug}
+      data-wishlist={JSON.stringify(wishItem)}
+      aria-label="Add to wishlist"
+      aria-pressed="false"
+    >
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+      </svg>
+    </button>
   </div>
   <div class="product-card-info-block">
     <a href={`/products/${product.slug}`} class="product-link-block w-inline-block">
@@ -57,16 +113,101 @@ const img3 = product.images[0] ?? product.thumbnail;
       {product.isOnSale
         ? (
           <>
-            <div class="product-card-sale-price">${product.price.toFixed(2)}</div>
-            <div class="product-carrd-compare-price">${(product.comparePrice ?? product.price).toFixed(2)}</div>
+            <div class="product-card-sale-price">{formatMoney(product.price, product.currencyCode)}</div>
+            <div class="product-carrd-compare-price">{formatMoney(product.comparePrice ?? product.price, product.currencyCode)}</div>
           </>
         )
         : (
-          <div class="product-card-discount-price">${product.price.toFixed(2)}</div>
+          <div class="product-card-discount-price">{formatMoney(product.price, product.currencyCode)}</div>
         )
       }
     </div>
   </div>
+
+<style>
+  /* webflow.css uses aspect-ratio:1 (square) designed for the static demo images.
+     Shopify fashion photos are portrait; override to 3:4 so nothing is cut off. */
+  .product-main-thumbnail,
+  .product-secondary-thumbnail {
+    aspect-ratio: 3 / 4;
+    width: 100%;
+    object-fit: cover;
+    object-position: center top;
+  }
+
+  /* Clip the slide-up button to the image area only (not the swatch menu) */
+  .product-tab-content {
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Overlay button — hidden below the image, slides up on card hover */
+  .product-card-atc-btn {
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    z-index: 2;
+    padding: 14px 16px;
+    border: none;
+    border-radius: 0;
+    background-color: var(--_color---black);
+    color: var(--_color---white);
+    font-size: var(--_font-sizes---body-text-large);
+    font-weight: var(--_font-weight---semi-bold);
+    letter-spacing: var(--_letter-spacing---letter-space-3);
+    cursor: pointer;
+    transform: translateY(100%);
+    transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                background-color 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                color 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  .product-tab-wrapper:hover .product-card-atc-btn {
+    transform: translateY(0);
+  }
+
+  .product-card-atc-btn:hover:not(:disabled):not(.is-loading) {
+    background-color: var(--_color---neutral-600, #444);
+  }
+
+  .product-card-atc-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .product-card-atc-btn.is-loading {
+    opacity: 0.7;
+    pointer-events: none;
+  }
+</style>
+
+<script>
+  import { addItem } from '@/lib/cart';
+
+  document.addEventListener('click', async (e) => {
+    const btn = (e.target as Element).closest<HTMLButtonElement>('.product-card-atc-btn');
+    if (!btn || btn.disabled || btn.classList.contains('is-loading')) return;
+    const variantId = btn.dataset.variantId;
+    if (!variantId) return;
+
+    const originalText = btn.textContent ?? 'Add to Cart';
+    btn.classList.add('is-loading');
+    btn.textContent = 'Adding...';
+
+    try {
+      await addItem(variantId);
+      btn.textContent = 'Added!';
+      setTimeout(() => {
+        btn.textContent = originalText;
+        btn.classList.remove('is-loading');
+      }, 1500);
+    } catch {
+      btn.textContent = originalText;
+      btn.classList.remove('is-loading');
+    }
+  });
+</script>
 
 <script is:inline>
   (function () {

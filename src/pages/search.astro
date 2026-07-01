@@ -3,25 +3,75 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 import Header from '@/components/layout/Header.astro';
 import Footer from '@/components/layout/Footer.astro';
 import CommonHero from '@/components/ui/CommonHero.astro';
-import { products } from '@/data/products';
+import ProductCard from '@/components/sections/ProductCard.astro';
+import { searchProducts, SEARCH_SORT_OPTIONS, resolveSort } from '@/lib/shopify';
+import { adaptCard } from '@/lib/shopify/adapter';
+import type { Product } from '@/types';
 
-const allProductsJSON = JSON.stringify(products.map((p) => ({
-  slug: p.slug,
-  name: p.name,
-  price: p.price,
-  category: p.category,
-  thumbnail: p.thumbnail,
-  isOnSale: p.isOnSale,
-  discount: p.discount,
-  comparePrice: p.comparePrice,
-})));
+export const prerender = false;
+
+const PAGE_SIZE = 24;
+const params = Astro.url.searchParams;
+
+// Header forms submit `query`; the search page form submits `q`. Accept both.
+const q = (params.get('q') ?? params.get('query') ?? '').trim();
+const sort = resolveSort(SEARCH_SORT_OPTIONS, params.get('sort'));
+const after = params.get('after');
+const before = params.get('before');
+
+let results: Product[] = [];
+let total = 0;
+let pageInfo: { hasNextPage: boolean; hasPreviousPage: boolean; startCursor?: string | null; endCursor?: string | null } = {
+  hasNextPage: false,
+  hasPreviousPage: false,
+  startCursor: null,
+  endCursor: null,
+};
+if (q) {
+  try {
+    const res = await searchProducts({
+      query: q,
+      pageSize: PAGE_SIZE,
+      sortKey: sort.sortKey,
+      reverse: sort.reverse,
+      after,
+      before,
+    });
+    results = res.items.map(adaptCard);
+    total = res.totalCount;
+    pageInfo = res.pageInfo;
+  } catch {
+    /* network/Shopify error — surface the empty state */
+  }
+}
+
+// Build a URL preserving q + sort with the given overrides (null = remove).
+function buildUrl(overrides: Record<string, string | null>): string {
+  const sp = new URLSearchParams();
+  if (q) sp.set('q', q);
+  if (sort.value !== SEARCH_SORT_OPTIONS[0].value) sp.set('sort', sort.value);
+  for (const [k, v] of Object.entries(overrides)) {
+    if (v == null) sp.delete(k);
+    else sp.set(k, v);
+  }
+  const qs = sp.toString();
+  return Astro.url.pathname + (qs ? `?${qs}` : '');
+}
+
+const nextUrl = pageInfo.hasNextPage && pageInfo.endCursor ? buildUrl({ after: pageInfo.endCursor }) : null;
+const prevUrl = pageInfo.hasPreviousPage && pageInfo.startCursor ? buildUrl({ before: pageInfo.startCursor }) : null;
+
+const heroTitle = q ? `Results for “${q}”` : 'Search Products';
 ---
 
-<BaseLayout title="Search — Dojeen" description="Search for products on Dojeen.">
+<BaseLayout
+  title={q ? `Search: “${q}” — Dojeen` : 'Search — Dojeen'}
+  description="Search for products on Dojeen."
+>
   <Header variant="default" />
-  <main class="main-wrapper">
+  <main id="main-content" class="main-wrapper">
 
-    <CommonHero subtitle="Search" title="Search Products" />
+    <CommonHero subtitle="Search" title={heroTitle} />
 
     <section class="search-results-section">
       <div class="section-gap">
@@ -34,6 +84,7 @@ const allProductsJSON = JSON.stringify(products.map((p) => ({
                 type="search"
                 name="q"
                 id="searchPageInput"
+                value={q}
                 placeholder="Search products..."
                 class="search-page-bar-input"
                 autocomplete="off"
@@ -47,13 +98,59 @@ const allProductsJSON = JSON.stringify(products.map((p) => ({
             </div>
           </form>
 
-          <!-- Results grid (same classes as shop page) -->
-          <div class="product-collection-list w-dyn-list">
-            <div id="searchResults" role="list" class="product-archive-grid-two w-dyn-items"></div>
-          </div>
-          <div id="searchEmpty" class="search-empty-state" style="display:none">
-            <p>No products found matching your search. <a href="/shop">Browse all products</a></p>
-          </div>
+          {q && results.length > 0 && (
+            <div class="product-selector-form-block w-form">
+              <div class="shop-result-info">
+                <span class="selector-text">{total} {total === 1 ? 'result' : 'results'} for “{q}”</span>
+              </div>
+              <form method="get" action="/search" id="searchSortForm" class="product-selector-form">
+                <input type="hidden" name="q" value={q} />
+                <div class="selector-text">Sort by:</div>
+                <select id="searchSortSelect" name="sort" class="product-select-input w-select">
+                  {SEARCH_SORT_OPTIONS.map((opt) => (
+                    <option value={opt.value} selected={opt.value === sort.value}>{opt.label}</option>
+                  ))}
+                </select>
+              </form>
+            </div>
+          )}
+
+          {results.length > 0 ? (
+            <div class="product-collection-list w-dyn-list">
+              <div role="list" class="product-archive-grid-two w-dyn-items">
+                {results.map((product) => (
+                  <div role="listitem" class="product-collection-item w-dyn-item">
+                    <div class="product-card-block">
+                      <ProductCard product={product} headingTag="h3" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div class="search-empty-state">
+              {q ? (
+                <p>No products found for “{q}”. <a href="/shop">Browse all products</a></p>
+              ) : (
+                <p>Type a search term above to find products.</p>
+              )}
+            </div>
+          )}
+
+          {(nextUrl || prevUrl) && (
+            <div class="plp-pagination">
+              {prevUrl ? (
+                <a href={prevUrl} class="plp-page-btn" rel="prev">← Previous</a>
+              ) : (
+                <span class="plp-page-btn is-disabled" aria-disabled="true">← Previous</span>
+              )}
+              {nextUrl ? (
+                <a href={nextUrl} class="plp-page-btn" rel="next">Next →</a>
+              ) : (
+                <span class="plp-page-btn is-disabled" aria-disabled="true">Next →</span>
+              )}
+            </div>
+          )}
 
         </div>
       </div>
@@ -63,78 +160,39 @@ const allProductsJSON = JSON.stringify(products.map((p) => ({
   <Footer />
 </BaseLayout>
 
-<script is:inline define:vars={{ allProductsJSON }}>
+<style>
+  .plp-pagination {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 40px;
+  }
+  .plp-page-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 12px 24px;
+    border: 1px solid var(--_color---neutral-400);
+    border-radius: var(--_border-radius---radius-xs);
+    font-size: 15px;
+    color: var(--_color---neutral-800);
+    background: #fff;
+    transition: background-color .2s ease, border-color .2s ease;
+  }
+  .plp-page-btn:hover {
+    border-color: var(--_color---neutral-800);
+  }
+  .plp-page-btn.is-disabled {
+    color: var(--_color---neutral-500);
+    background: var(--_color---neutral-200);
+    pointer-events: none;
+  }
+</style>
+
+<script is:inline>
+  /* Auto-submit search sort form on change (resets cursor — new form has no after/before). */
   (function () {
-    var allProducts = JSON.parse(allProductsJSON);
-    var resultsEl  = document.getElementById('searchResults');
-    var emptyEl    = document.getElementById('searchEmpty');
-    var inputEl    = document.getElementById('searchPageInput');
-    var heroTitle  = document.querySelector('.common-hero-title');
-
-    // Read query at runtime — Astro.url is always empty in SSG at build time
-    var params = new URLSearchParams(window.location.search);
-    var query  = params.get('q') || params.get('query') || '';
-
-    // Pre-fill the search input
-    if (inputEl && query) inputEl.value = query;
-
-    // Update hero title + document title
-    if (query) {
-      if (heroTitle) heroTitle.textContent = 'Results for “' + query + '”';
-      document.title = 'Search: “' + query + '” — Dojeen';
-    }
-
-    function renderProduct(p) {
-      var priceHTML = p.isOnSale
-        ? '<div class="product-card-sale-price">$' + p.price.toFixed(2) + '</div>' +
-          '<div class="product-carrd-compare-price">$' + (p.comparePrice || p.price).toFixed(2) + '</div>'
-        : '<div class="product-card-discount-price">$' + p.price.toFixed(2) + '</div>';
-      var badgeHTML = p.isOnSale
-        ? '<div class="product-badge-wrapper"><div class="sale-badge">Sale</div>' +
-          (p.discount ? '<div class="discount-badge">-' + p.discount + '%</div>' : '') + '</div>'
-        : '';
-      return (
-        '<div role="listitem" class="product-collection-item w-dyn-item">' +
-          '<div class="product-card-block">' +
-            '<div class="offerse-card-block">' +
-              '<div class="product-tab-wrapper">' +
-                '<a href="/products/' + p.slug + '" class="product-thumbnail-block w-inline-block">' +
-                  '<img loading="lazy" src="/images/' + p.thumbnail + '" alt="' + p.name + '" class="product-main-thumbnail" />' +
-                '</a>' +
-                badgeHTML +
-              '</div>' +
-              '<div class="product-card-info-block">' +
-                '<a href="/products/' + p.slug + '" class="product-link-block w-inline-block">' +
-                  '<h3 class="product-name">' + p.name + '</h3>' +
-                '</a>' +
-                '<div class="product-card-pricing-block">' + priceHTML + '</div>' +
-              '</div>' +
-            '</div>' +
-          '</div>' +
-        '</div>'
-      );
-    }
-
-    function doSearch(q) {
-      if (!q) {
-        if (resultsEl) resultsEl.innerHTML = '';
-        if (emptyEl) emptyEl.style.display = 'none';
-        return;
-      }
-      var lower = q.toLowerCase();
-      var filtered = allProducts.filter(function (p) {
-        return p.name.toLowerCase().indexOf(lower) !== -1 ||
-               p.category.toLowerCase().indexOf(lower) !== -1;
-      });
-      if (filtered.length > 0) {
-        if (resultsEl) resultsEl.innerHTML = filtered.map(renderProduct).join('');
-        if (emptyEl)   emptyEl.style.display = 'none';
-      } else {
-        if (resultsEl) resultsEl.innerHTML = '';
-        if (emptyEl)   emptyEl.style.display = '';
-      }
-    }
-
-    doSearch(query);
+    var sel = document.getElementById('searchSortSelect');
+    var form = document.getElementById('searchSortForm');
+    if (sel && form) sel.addEventListener('change', function () { form.submit(); });
   })();
 </script>

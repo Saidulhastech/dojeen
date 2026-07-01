@@ -1,0 +1,69 @@
+---
+export const prerender = true;
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Header from '@/components/layout/Header.astro';
+import Footer from '@/components/layout/Footer.astro';
+import CommonHero from '@/components/ui/CommonHero.astro';
+---
+
+<BaseLayout title="Wishlist — Dojeen" description="Your saved favourites — ready when you are.">
+  <Header variant="default" currentPath="/wishlist" />
+  <main id="main-content" class="main-wrapper">
+
+    <CommonHero subtitle="Wishlist" title="Your Wishlist" />
+
+    <div class="wishlist-area">
+      <div class="section-gap">
+        <div class="w-layout-blockcontainer container-default w-container">
+          <div class="wishlist-grid" id="wishlistGrid" hidden></div>
+          <div class="wishlist-empty" id="wishlistEmpty">
+            <p class="wishlist-empty-text">Your wishlist is empty — tap the heart on any product to save it here.</p>
+            <a href="/shop" class="primary-button w-inline-block">
+              <div class="button-text-block"><div class="button-text">Shop Now</div></div>
+              <div class="button-bg"></div>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+  <Footer />
+</BaseLayout>
+
+<script>
+  import { renderWishlist, syncWishlistUI } from '@/lib/wishlist';
+  import { addItem } from '@/lib/cart';
+
+  const grid = document.getElementById('wishlistGrid');
+  const empty = document.getElementById('wishlistEmpty');
+
+  function paint() {
+    renderWishlist({ grid, empty });
+    syncWishlistUI(); // fill the freshly-rendered hearts (all items here are wished)
+  }
+  paint();
+  window.addEventListener('wishlist:updated', paint);
+
+  // Add to cart straight from a wishlist card.
+  document.addEventListener('click', async (e) => {
+    const btn = (e.target as Element).closest<HTMLButtonElement>('.wishlist-atc');
+    if (!btn || btn.disabled || btn.classList.contains('is-loading')) return;
+    const variantId = btn.getAttribute('data-variant-id');
+    if (!variantId) return;
+    const original = btn.textContent ?? 'Add to Cart';
+    btn.classList.add('is-loading');
+    btn.textContent = 'Adding...';
+    try {
+      await addItem(variantId);
+      btn.textContent = 'Added!';
+      setTimeout(() => {
+        btn.textContent = original;
+        btn.classList.remove('is-loading');
+      }, 1500);
+    } catch {
+      btn.textContent = original;
+      btn.classList.remove('is-loading');
+    }
+  });
+</script>

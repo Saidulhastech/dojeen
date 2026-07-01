@@ -1,0 +1,338 @@
+---
+export const prerender = false;
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Header from '@/components/layout/Header.astro';
+import Footer from '@/components/layout/Footer.astro';
+import CommonHero from '@/components/ui/CommonHero.astro';
+import { getSession } from '@/lib/customer/session';
+import { getCustomerDashboard } from '@/lib/customer/service';
+import { publicOrigin } from '@/lib/customer/config';
+import { formatMoney } from '@/lib/money';
+import { img } from '@/lib/img';
+
+// Gate: no session → start the OAuth login and come back here.
+if (!getSession(Astro.cookies)) {
+  return Astro.redirect('/api/auth/login?returnTo=/account');
+}
+const customer = await getCustomerDashboard(Astro.cookies, publicOrigin(Astro.request, Astro.url));
+// Session present but unusable (expired + refresh failed) → re-auth.
+if (!customer) {
+  return Astro.redirect('/api/auth/login?returnTo=/account');
+}
+
+const firstName = customer.firstName ?? '';
+const fullName = [customer.firstName, customer.lastName].filter(Boolean).join(' ');
+const email = customer.emailAddress?.emailAddress ?? '';
+const phone = customer.phoneNumber?.phoneNumber ?? '';
+const orders = customer.orders?.nodes ?? [];
+const addresses = customer.addresses?.nodes ?? [];
+const defaultAddressId = customer.defaultAddress?.id ?? '';
+
+const prettyStatus = (s?: string | null) =>
+  s ? s.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase()) : '';
+const fmtDate = (iso: string) =>
+  new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+---
+
+<BaseLayout title="My Account — Dojeen" description="Manage your profile, orders, and addresses." noIndex={true}>
+  <Header variant="default" currentPath="/account" />
+  <main id="main-content" class="main-wrapper">
+    <CommonHero subtitle="Account" title="My Account" />
+
+    <div class="account-area">
+      <div class="section-gap">
+        <div class="w-layout-blockcontainer container-default w-container">
+
+          <div class="account-topbar">
+            <p class="account-greeting">
+              Welcome back{firstName ? `, ${firstName}` : ''}.
+            </p>
+            <a href="/api/auth/logout" class="account-signout">Sign out</a>
+          </div>
+
+          <!-- Profile -->
+          <section class="account-block">
+            <h2 class="account-block-title">Profile</h2>
+            <div class="account-profile-grid">
+              <div class="account-field">
+                <span class="account-field-label">Name</span>
+                <span class="account-field-value">{fullName || '—'}</span>
+              </div>
+              <div class="account-field">
+                <span class="account-field-label">Email</span>
+                <span class="account-field-value">{email || '—'}</span>
+              </div>
+              <div class="account-field">
+                <span class="account-field-label">Phone</span>
+                <span class="account-field-value">{phone || '—'}</span>
+              </div>
+            </div>
+          </section>
+
+          <!-- Orders -->
+          <section class="account-block">
+            <h2 class="account-block-title">Order History</h2>
+            {orders.length === 0 ? (
+              <div class="account-empty">
+                <p>You haven't placed any orders yet.</p>
+                <a href="/shop" class="primary-button w-inline-block">
+                  <div class="button-text-block"><div class="button-text">Start Shopping</div></div>
+                  <div class="button-bg"></div>
+                </a>
+              </div>
+            ) : (
+              <div class="account-orders">
+                {orders.map((o) => (
+                  <article class="account-order">
+                    <div class="account-order-head">
+                      <div class="account-order-id">
+                        <span class="account-order-name">{o.name}</span>
+                        <span class="account-order-date">{fmtDate(o.processedAt)}</span>
+                      </div>
+                      <div class="account-order-status">
+                        {o.fulfillmentStatus && (
+                          <span class="account-badge">{prettyStatus(o.fulfillmentStatus)}</span>
+                        )}
+                        {o.financialStatus && (
+                          <span class="account-badge account-badge-soft">{prettyStatus(o.financialStatus)}</span>
+                        )}
+                      </div>
+                    </div>
+                    <div class="account-order-body">
+                      <div class="account-order-thumbs">
+                        {o.lineItems.nodes.slice(0, 4).map((li) => (
+                          <span class="account-order-thumb">
+                            {li.image?.url ? (
+                              <img src={img(li.image.url)} alt={li.image.altText ?? li.title} loading="lazy" />
+                            ) : (
+                              <span class="account-order-thumb-empty"></span>
+                            )}
+                            {li.quantity > 1 && <span class="account-order-qty">{li.quantity}</span>}
+                          </span>
+                        ))}
+                        {o.lineItems.nodes.length > 4 && (
+                          <span class="account-order-more">+{o.lineItems.nodes.length - 4}</span>
+                        )}
+                      </div>
+                      <div class="account-order-total">
+                        {formatMoney(Number(o.totalPrice.amount), o.totalPrice.currencyCode)}
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <!-- Addresses -->
+          <section class="account-block">
+            <h2 class="account-block-title">Saved Addresses</h2>
+            {addresses.length === 0 ? (
+              <div class="account-empty"><p>No saved addresses yet.</p></div>
+            ) : (
+              <div class="account-address-grid">
+                {addresses.map((a) => (
+                  <div class={`account-address${a.id === defaultAddressId ? ' is-default' : ''}`}>
+                    {a.id === defaultAddressId && <span class="account-address-default">Default</span>}
+                    <div class="account-address-lines">
+                      {a.formatted.map((line) => <div>{line}</div>)}
+                    </div>
+                    {a.phoneNumber && <div class="account-address-phone">{a.phoneNumber}</div>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+        </div>
+      </div>
+    </div>
+  </main>
+  <Footer />
+</BaseLayout>
+
+<style>
+  .account-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+  }
+  .account-greeting {
+    font-family: var(--_font-family---font-famity-heading);
+    font-size: var(--_font-sizes---heading-4);
+    color: var(--_color---black);
+    margin: 0;
+  }
+  .account-signout {
+    color: var(--_color---black);
+    font-family: var(--_font-family---font-famity-body);
+    font-size: var(--_font-sizes---body-text-small);
+    font-weight: var(--_font-weight---medium);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    transition: color 0.2s ease;
+  }
+  .account-signout:hover { color: var(--_color---red-500); }
+
+  .account-block {
+    padding: 32px 0;
+    border-top: 1px solid var(--_color---neutral-300);
+  }
+  .account-block-title {
+    font-family: var(--_font-family---font-famity-heading);
+    font-size: var(--_font-sizes---heading-4);
+    font-weight: var(--_font-weight---medium);
+    margin: 0 0 24px;
+  }
+
+  /* Profile */
+  .account-profile-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+  .account-field { display: flex; flex-direction: column; gap: 6px; }
+  .account-field-label {
+    font-size: var(--_font-sizes---body-text-small);
+    color: var(--_color---neutral-500);
+    text-transform: uppercase;
+    letter-spacing: var(--_letter-spacing---letter-space-3);
+  }
+  .account-field-value {
+    font-size: var(--_font-sizes---body-text);
+    color: var(--_color---black);
+    font-weight: var(--_font-weight---medium);
+  }
+
+  /* Orders */
+  .account-orders { display: flex; flex-direction: column; gap: 16px; }
+  .account-order {
+    border: 1px solid var(--_color---neutral-300);
+    border-radius: var(--_border-radius---radius-s);
+    padding: 20px 22px;
+    background: var(--_color---white);
+  }
+  .account-order-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .account-order-id { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .account-order-name {
+    font-family: var(--_font-family---font-famity-heading);
+    font-weight: var(--_font-weight---semi-bold);
+    color: var(--_color---black);
+  }
+  .account-order-date { font-size: var(--_font-sizes---body-text-small); color: var(--_color---neutral-500); }
+  .account-order-status { display: flex; gap: 8px; }
+  .account-badge {
+    padding: 4px 10px;
+    border-radius: 100px;
+    background: var(--_color---black);
+    color: var(--_color---white);
+    font-size: 11px;
+    font-weight: var(--_font-weight---semi-bold);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .account-badge-soft {
+    background: var(--_color---neutral-150, #f1efea);
+    color: var(--_color---neutral-700, #2a2724);
+  }
+  .account-order-body {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .account-order-thumbs { display: flex; align-items: center; gap: 10px; }
+  .account-order-thumb {
+    position: relative;
+    width: 48px;
+    height: 60px;
+    flex-shrink: 0;
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid var(--_color---neutral-300);
+    background: var(--_color---neutral-150, #f1efea);
+  }
+  .account-order-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .account-order-qty {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    font-size: 10px;
+    line-height: 16px;
+    text-align: center;
+  }
+  .account-order-more {
+    font-size: var(--_font-sizes---body-text-small);
+    color: var(--_color---neutral-500);
+  }
+  .account-order-total {
+    font-family: var(--_font-family---font-famity-heading);
+    font-weight: var(--_font-weight---semi-bold);
+    color: var(--_color---black);
+    white-space: nowrap;
+  }
+
+  /* Addresses */
+  .account-address-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  .account-address {
+    position: relative;
+    border: 1px solid var(--_color---neutral-300);
+    border-radius: var(--_border-radius---radius-s);
+    padding: 20px 22px;
+    background: var(--_color---white);
+    line-height: 1.6;
+  }
+  .account-address.is-default { border-color: var(--_color---black); }
+  .account-address-default {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    padding: 3px 9px;
+    border-radius: 100px;
+    background: var(--_color---black);
+    color: var(--_color---white);
+    font-size: 10px;
+    font-weight: var(--_font-weight---semi-bold);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .account-address-lines { color: var(--_color---black); }
+  .account-address-phone {
+    margin-top: 8px;
+    color: var(--_color---neutral-600);
+    font-size: var(--_font-sizes---body-text-small);
+  }
+
+  .account-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 18px;
+    color: var(--_color---neutral-600);
+  }
+
+  @media (max-width: 767px) {
+    .account-profile-grid { grid-template-columns: 1fr; gap: 18px; }
+    .account-address-grid { grid-template-columns: 1fr; }
+  }
+</style>

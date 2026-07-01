@@ -89,6 +89,7 @@ import { footerQuickLinks, footerUtilityLinks } from '@/data/nav';
           <div class="footer-form-block w-form">
             <form id="footer-newsletter-form" class="footer-form" method="post">
               <div class="footer-form-wrapper">
+                <label for="footer-email" class="visually-hidden">Email address</label>
                 <input
                   class="footer-input w-input"
                   maxlength="256"
@@ -96,6 +97,7 @@ import { footerQuickLinks, footerUtilityLinks } from '@/data/nav';
                   placeholder="Enter Your Email"
                   type="email"
                   id="footer-email"
+                  aria-label="Email address"
                   required
                 />
                 <button type="submit" class="footer-submit-button w-button" aria-label="Submit"></button>

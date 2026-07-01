@@ -1,4 +1,5 @@
 ---
+export const prerender = true;
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import Header from '@/components/layout/Header.astro';
 import Footer from '@/components/layout/Footer.astro';
@@ -6,7 +7,7 @@ import Footer from '@/components/layout/Footer.astro';
 
 <BaseLayout title="Order Confirmed — Dojeen" description="Your order has been confirmed." noIndex={true}>
   <Header variant="default" />
-  <main class="main-wrapper">
+  <main id="main-content" class="main-wrapper">
 
     <section class="order-confirmation-section page-top-gap">
       <div class="section-gap">

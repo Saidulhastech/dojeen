@@ -50,6 +50,10 @@ const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
+    <!-- Shopify CDN (product imagery) — open the connection early -->
+    <link rel="preconnect" href="https://cdn.shopify.com" crossorigin />
+    <link rel="dns-prefetch" href="https://cdn.shopify.com" />
+
     <!-- Google Fonts (async) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -76,12 +80,21 @@ const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
     <slot name="head" />
   </head>
   <body>
+    <!-- Skip link: first focusable element, lets keyboard users jump past the nav -->
+    <a href="#main-content" class="skip-to-content">Skip to content</a>
+
     <div class="page-wrapper">
       <slot />
     </div>
 
     <!-- Cart Drawer (always present in DOM) -->
     <CartDrawer />
+
+    <!-- Wishlist: delegated heart toggling + header badge sync (all pages) -->
+    <script>
+      import { initWishlistUI } from '@/lib/wishlist';
+      initWishlistUI();
+    </script>
 
     <!-- Back to top -->
     <button id="backToTop" aria-label="Back to top">
@@ -101,7 +114,8 @@ const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
           }
         }, { passive: true });
         btn.addEventListener('click', function () {
-          window.scrollTo({ top: 0, behavior: 'smooth' });
+          var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
         });
       })();
     </script>

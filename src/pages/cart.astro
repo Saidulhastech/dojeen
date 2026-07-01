@@ -1,4 +1,5 @@
 ---
+export const prerender = true;
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import Header from '@/components/layout/Header.astro';
 import Footer from '@/components/layout/Footer.astro';
@@ -7,7 +8,7 @@ import CommonHero from '@/components/ui/CommonHero.astro';
 
 <BaseLayout title="Cart — Dojeen" description="Review the items in your shopping cart before checkout.">
   <Header variant="default" currentPath="/cart" />
-  <main class="main-wrapper">
+  <main id="main-content" class="main-wrapper">
 
     <CommonHero subtitle="Shopping Cart" title="Your Cart" />
 
@@ -19,6 +20,15 @@ import CommonHero from '@/components/ui/CommonHero.astro';
 
             <!-- ── LEFT: cart items ── -->
             <div class="checkout-main">
+
+              <!-- Free-shipping progress (hidden until there are items) -->
+              <div class="cartpage-freeship" id="cartpage-freeship" style="display:none">
+                <p class="cartpage-freeship-text" id="cartpage-freeship-text"></p>
+                <div class="cartpage-freeship-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                  <span class="cartpage-freeship-fill" id="cartpage-freeship-fill"></span>
+                </div>
+              </div>
+
               <div class="checkout-block">
                 <div class="checkout-block-header">
                   <h2 class="checkout-block-title">Cart Items</h2>
@@ -28,6 +38,9 @@ import CommonHero from '@/components/ui/CommonHero.astro';
                   <!-- Items rendered by JS -->
                 </div>
               </div>
+
+              <!-- Upsell rail (rendered by JS; hidden until there are recommendations) -->
+              <div class="cartpage-upsell" id="cartpage-upsell" hidden></div>
             </div>
 
             <!-- ── RIGHT: sticky order summary ── -->
@@ -53,7 +66,7 @@ import CommonHero from '@/components/ui/CommonHero.astro';
                 </div>
               </div>
 
-              <a href="/checkout" class="primary-button w-inline-block checkout-place-order">
+              <a href="#" id="cartCheckoutBtn" class="primary-button w-inline-block checkout-place-order">
                 <div class="button-text-block">
                   <div class="button-text">Proceed to Checkout</div>
                 </div>
@@ -73,6 +86,42 @@ import CommonHero from '@/components/ui/CommonHero.astro';
 
 <!-- is:global required — cart rows are injected via JS innerHTML and don't receive Astro's scoped hash -->
 <style is:global>
+  /* Free-shipping progress card (cart page) */
+  .cartpage-freeship {
+    margin-bottom: 24px;
+    padding: 18px 22px;
+    border: 1px solid var(--_color---neutral-300);
+    border-radius: var(--_border-radius---radius-s);
+    background: var(--_color---white);
+  }
+  .cartpage-freeship-text {
+    margin: 0 0 12px;
+    font-size: var(--_font-sizes---body-text-small);
+    color: var(--_color---neutral-800);
+    line-height: 1.4;
+  }
+  .cartpage-freeship-text strong { font-weight: var(--_font-weight---semi-bold); }
+  .cartpage-freeship.is-qualified .cartpage-freeship-text { color: var(--_color---green-500, #14854e); }
+  .cartpage-freeship-track {
+    position: relative;
+    height: 8px;
+    border-radius: 100px;
+    background: var(--_color---neutral-300);
+    overflow: hidden;
+  }
+  .cartpage-freeship-fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 0%;
+    border-radius: 100px;
+    background: var(--_color---black);
+    transition: width 0.45s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.3s ease;
+  }
+  .cartpage-freeship.is-qualified .cartpage-freeship-fill { background: var(--_color---green-500, #14854e); }
+  @media (prefers-reduced-motion: reduce) {
+    .cartpage-freeship-fill { transition: none; }
+  }
+
   .cart-page-item {
     display: flex;
     align-items: flex-start;
@@ -207,6 +256,18 @@ import CommonHero from '@/components/ui/CommonHero.astro';
   }
   .cart-continue-link:hover { color: var(--_color---red-500); }
 
+  /* Upsell rail container (cart page) — base .upsell-* styles live in CartDrawer */
+  .cartpage-upsell {
+    margin-top: 24px;
+    padding: 22px;
+    border: 1px solid var(--_color---neutral-300);
+    border-radius: var(--_border-radius---radius-s);
+    background: var(--_color---white);
+  }
+  .cartpage-upsell[hidden] { display: none; }
+  .cartpage-upsell .upsell-thumb { width: 60px; height: 76px; }
+  .cartpage-upsell .upsell-name { font-size: 14px; }
+
   /* ── Mobile cart redesign ── */
   @media (max-width: 767px) {
     /* Tighter section padding */
@@ -297,101 +358,130 @@ import CommonHero from '@/components/ui/CommonHero.astro';
   }
 </style>
 
-<script is:inline>
-  (function () {
-    var container = document.getElementById('cartItemsContainer');
-    var sidebar = document.getElementById('cartSidebar');
-    var subtotalEl = document.getElementById('cartSubtotal');
-    var totalEl = document.getElementById('cartTotal');
-    var countEl = document.getElementById('cartItemCount');
+<script>
+  import { initCart, getCurrentCart, updateLine, removeLine, type Cart, type CartLine } from '@/lib/cart';
+  import { formatMoney } from '@/lib/money';
+  import { freeShipProgress } from '@/lib/shipping';
+  import { renderUpsell } from '@/lib/cart-upsell';
+  import { sizedImg } from '@/lib/img';
+
+  const container = document.getElementById('cartItemsContainer');
+  const upsellEl = document.getElementById('cartpage-upsell');
+  const sidebar = document.getElementById('cartSidebar');
+  const subtotalEl = document.getElementById('cartSubtotal');
+  const totalEl = document.getElementById('cartTotal');
+  const countEl = document.getElementById('cartItemCount');
+  const checkoutBtn = document.getElementById('cartCheckoutBtn') as HTMLAnchorElement | null;
+
+  const freeship = document.getElementById('cartpage-freeship');
+  const freeshipText = document.getElementById('cartpage-freeship-text');
+  const freeshipFill = document.getElementById('cartpage-freeship-fill');
+  const freeshipTrack = freeship?.querySelector<HTMLElement>('.cartpage-freeship-track') ?? null;
+
+  function renderFreeShip(cart: Cart | null) {
+    if (!freeship) return;
+    const lines = cart?.lines ?? [];
+    if (!cart || lines.length === 0) {
+      freeship.style.display = 'none';
+      return;
+    }
+    freeship.style.display = 'block';
+    const { amount, currencyCode } = cart.cost.subtotalAmount;
+    const { qualified, remaining, pct } = freeShipProgress(Number(amount));
+    freeship.classList.toggle('is-qualified', qualified);
+    if (freeshipText) {
+      freeshipText.innerHTML = qualified
+        ? "🎉 You've unlocked <strong>free shipping</strong>!"
+        : 'Add <strong>' + formatMoney(remaining, currencyCode) + '</strong> more for free shipping';
+    }
+    if (freeshipFill) freeshipFill.style.width = pct + '%';
+    if (freeshipTrack) freeshipTrack.setAttribute('aria-valuenow', String(Math.round(pct)));
+  }
+
+  const esc = (s: unknown) =>
+    String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c] as string);
+
+  const lineMeta = (line: CartLine) =>
+    (line.merchandise.selectedOptions || [])
+      .filter((o) => o.value && o.value.toLowerCase() !== 'default title')
+      .map((o) => '<div class="cart-page-meta">' + esc(o.name) + ': ' + esc(o.value) + '</div>')
+      .join('');
+
+  function render(cart: Cart | null) {
     if (!container) return;
+    const lines = cart?.lines ?? [];
+    renderFreeShip(cart);
+    void renderUpsell(upsellEl, cart, { limit: 3 });
 
-    function getCart() {
-      try { return JSON.parse(localStorage.getItem('dojeen_cart') || '[]'); } catch (e) { return []; }
+    if (lines.length === 0) {
+      container.innerHTML =
+        '<div class="cart-page-empty">' +
+          '<p class="cart-page-empty-text">Your cart is empty.</p>' +
+          '<a href="/shop" class="primary-button w-inline-block">' +
+            '<div class="button-text-block"><div class="button-text">Shop Now</div></div>' +
+            '<div class="button-bg"></div>' +
+          '</a>' +
+        '</div>';
+      if (sidebar) sidebar.style.display = 'none';
+      if (countEl) countEl.textContent = '';
+      return;
     }
-    function saveCart(items) {
-      localStorage.setItem('dojeen_cart', JSON.stringify(items));
-      window.dispatchEvent(new CustomEvent('cart:updated', { detail: { items: items } }));
-    }
-    function money(n) { return '$' + n.toFixed(2); }
-    function esc(s) {
-      return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
-        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
-      });
-    }
 
-    function render() {
-      var items = getCart();
+    if (sidebar) sidebar.style.display = '';
 
-      if (items.length === 0) {
-        container.innerHTML =
-          '<div class="cart-page-empty">' +
-            '<p class="cart-page-empty-text">Your cart is empty.</p>' +
-            '<a href="/shop" class="primary-button w-inline-block">' +
-              '<div class="button-text-block"><div class="button-text">Shop Now</div></div>' +
-              '<div class="button-bg"></div>' +
-            '</a>' +
-          '</div>';
-        if (sidebar) sidebar.style.display = 'none';
-        if (countEl) countEl.textContent = '';
-        return;
-      }
-
-      if (sidebar) sidebar.style.display = '';
-      var total = 0;
-      var count = 0;
-      container.innerHTML = items.map(function (item, idx) {
-        var line = item.price * item.quantity;
-        total += line;
-        count += item.quantity;
-        var href = '/products/' + (item.slug || '');
+    container.innerHTML = lines
+      .map((line) => {
+        const m = line.merchandise;
+        const href = '/products/' + (m.product?.handle || '');
+        const image = m.image?.url || m.product?.featuredImage?.url || '';
+        const name = m.product?.title || m.title || '';
+        const unit = formatMoney(Number(line.cost.amountPerQuantity.amount), line.cost.amountPerQuantity.currencyCode);
+        const lineTotal = formatMoney(Number(line.cost.totalAmount.amount), line.cost.totalAmount.currencyCode);
         return (
           '<div class="cart-page-item">' +
             '<a href="' + href + '" class="cart-page-thumb-link">' +
-              '<img src="' + esc(item.image) + '" alt="' + esc(item.name) + '" class="cart-page-thumb" />' +
+              '<img src="' + esc(sizedImg(image, 250)) + '" alt="' + esc(name) + '" class="cart-page-thumb" loading="lazy" />' +
             '</a>' +
             '<div class="cart-page-info">' +
-              '<a href="' + href + '" class="cart-page-name">' + esc(item.name) + '</a>' +
-              (item.color ? '<div class="cart-page-meta">Color: ' + esc(item.color) + '</div>' : '') +
-              (item.size ? '<div class="cart-page-meta">Size: ' + esc(item.size) + '</div>' : '') +
-              '<div class="cart-page-unit-price">' + money(item.price) + ' each</div>' +
-              '<button type="button" class="cart-page-remove" data-action="remove" data-idx="' + idx + '">Remove</button>' +
+              '<a href="' + href + '" class="cart-page-name">' + esc(name) + '</a>' +
+              lineMeta(line) +
+              '<div class="cart-page-unit-price">' + unit + ' each</div>' +
+              '<button type="button" class="cart-page-remove" data-action="remove" data-line="' + esc(line.id) + '">Remove</button>' +
             '</div>' +
             '<div class="cart-page-qty">' +
-              '<button type="button" class="cart-page-qty-btn" data-action="dec" data-idx="' + idx + '" aria-label="Decrease quantity">−</button>' +
-              '<span class="cart-page-qty-value">' + item.quantity + '</span>' +
-              '<button type="button" class="cart-page-qty-btn" data-action="inc" data-idx="' + idx + '" aria-label="Increase quantity">+</button>' +
+              '<button type="button" class="cart-page-qty-btn" data-action="dec" data-line="' + esc(line.id) + '" aria-label="Decrease quantity">−</button>' +
+              '<span class="cart-page-qty-value">' + line.quantity + '</span>' +
+              '<button type="button" class="cart-page-qty-btn" data-action="inc" data-line="' + esc(line.id) + '" aria-label="Increase quantity">+</button>' +
             '</div>' +
-            '<div class="cart-page-line-total">' + money(line) + '</div>' +
+            '<div class="cart-page-line-total">' + lineTotal + '</div>' +
           '</div>'
         );
-      }).join('');
+      })
+      .join('');
 
-      if (subtotalEl) subtotalEl.textContent = money(total);
-      if (totalEl) totalEl.textContent = money(total);
-      if (countEl) countEl.textContent = count + (count === 1 ? ' item' : ' items');
-
-      container.querySelectorAll('[data-action]').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-          var cart = getCart();
-          var i = parseInt(btn.getAttribute('data-idx'), 10);
-          var action = btn.getAttribute('data-action');
-          if (!cart[i]) return;
-          if (action === 'inc') {
-            cart[i].quantity = (cart[i].quantity || 1) + 1;
-          } else if (action === 'dec') {
-            if (cart[i].quantity > 1) cart[i].quantity -= 1;
-            else cart.splice(i, 1);
-          } else if (action === 'remove') {
-            cart.splice(i, 1);
-          }
-          saveCart(cart);
-          render();
-        });
-      });
+    if (cart) {
+      const subtotal = formatMoney(Number(cart.cost.subtotalAmount.amount), cart.cost.subtotalAmount.currencyCode);
+      const grandTotal = formatMoney(Number(cart.cost.totalAmount.amount), cart.cost.totalAmount.currencyCode);
+      if (subtotalEl) subtotalEl.textContent = subtotal;
+      if (totalEl) totalEl.textContent = grandTotal;
+      if (checkoutBtn) checkoutBtn.href = cart.checkoutUrl || '#';
     }
+    if (countEl) countEl.textContent = cart!.totalQuantity + (cart!.totalQuantity === 1 ? ' item' : ' items');
 
-    render();
-    window.addEventListener('cart:updated', render);
-  })();
+    container.querySelectorAll<HTMLElement>('[data-action]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const lineId = btn.getAttribute('data-line') || '';
+        const action = btn.getAttribute('data-action');
+        const line = getCurrentCart()?.lines.find((l) => l.id === lineId);
+        if (!line) return;
+        if (action === 'inc') updateLine(lineId, line.quantity + 1);
+        else if (action === 'dec') updateLine(lineId, line.quantity - 1);
+        else if (action === 'remove') removeLine(lineId);
+      });
+    });
+  }
+
+  window.addEventListener('cart:updated', (e) => render((e as CustomEvent).detail.cart));
+  render(getCurrentCart());
+  initCart();
 </script>

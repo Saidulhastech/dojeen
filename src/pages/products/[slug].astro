@@ -3,48 +3,104 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 import Header from '@/components/layout/Header.astro';
 import Footer from '@/components/layout/Footer.astro';
 import ProductCard from '@/components/sections/ProductCard.astro';
-import { products } from '@/data/products';
 import { swatchColor, isLightSwatch } from '@/lib/colors';
-import type { GetStaticPaths } from 'astro';
-import type { Product } from '@/types';
+import { img, sizedImg, srcSet } from '@/lib/img';
+import { formatMoney } from '@/lib/money';
+import { getProductBySlug, getRelatedProducts, getComplementaryProducts } from '@/lib/catalog';
+import { testimonials } from '@/data/testimonials';
 
-export const getStaticPaths: GetStaticPaths = () => {
-  return products.map((product) => ({
-    params: { slug: product.slug },
-    props: { product },
-  }));
-};
+// "Only N left" shows once a variant's stock is at or below this (and above 0).
+const LOW_STOCK_THRESHOLD = 10;
 
-interface Props {
-  product: Product;
+const slug = Astro.params.slug!;
+const product = await getProductBySlug(slug);
+if (!product) {
+  return Astro.redirect('/404');
 }
 
-const { product } = Astro.props;
-const relatedProducts = products
-  .filter((p) => p.categorySlug === product.categorySlug && p.slug !== product.slug)
-  .slice(0, 4);
+// Fetch up to 10 related products (Shopify's recommendations cap) so the slider
+// has more than the 4 shown per view on desktop — otherwise there's nothing to
+// scroll and the arrows appear inert.
+const [relatedProducts, completeTheLook] = product.shopifyId
+  ? await Promise.all([
+      getRelatedProducts(product.shopifyId, 10),
+      getComplementaryProducts(product.shopifyId, 4),
+    ])
+  : [[], []];
+
+// Initial low-stock state for the default variant (the client re-evaluates per
+// selection). Null quantity = store doesn't expose inventory → no indicator.
+const defaultVariant =
+  product.variantMatrix?.find((v) => v.id === product.variantId) ?? product.variantMatrix?.[0];
+const initialQty = defaultVariant?.quantity ?? null;
+const showInitialLowStock =
+  product.inStock && initialQty != null && initialQty > 0 && initialQty <= LOW_STOCK_THRESHOLD;
 const allImages = [product.thumbnail, product.thumbnailHover, ...product.images].filter(
-  (img, idx, arr) => arr.indexOf(img) === idx
+  (im, idx, arr) => im && arr.indexOf(im) === idx
 );
+// Long descriptions get clamped to a teaser in the buy rail (full copy lives in the
+// "Product Information's" accordion); short ones render in full with no "Read more".
+const isLongDesc = (product.description?.length ?? 0) > 220;
+
+// Compact snapshot of this product for the client-side "Recently Viewed" history
+// (image URLs pre-resolved so the section renders without any server round-trip).
+const recentSnapshot = {
+  slug: product.slug,
+  name: product.name,
+  price: product.price,
+  currencyCode: product.currencyCode,
+  isOnSale: !!product.isOnSale,
+  comparePrice: product.comparePrice ?? null,
+  discount: product.discount ?? 0,
+  thumbnail: img(product.thumbnail),
+  thumbnailHover: img(product.thumbnailHover || product.thumbnail),
+};
+
+// Wishlist snapshot (adds variantId/inStock so the wishlist page can add to cart).
+const wishItem = { ...recentSnapshot, variantId: product.variantId, inStock: product.inStock };
 ---
 
-<BaseLayout title={`${product.name} — Dojeen`} description={product.description}>
+<BaseLayout
+  title={`${product.name} — Dojeen`}
+  description={product.description}
+  ogImage={product.thumbnail || '/og-image.jpg'}
+>
   <Header variant="default" currentPath={Astro.url.pathname} />
-  <main class="main-wrapper">
+  <main id="main-content" class="main-wrapper">
 
     <!-- Product Details Section -->
     <section class="product-details-section page-top-gap">
       <div class="cms-hero-gap">
         <div class="w-layout-blockcontainer container-default w-container">
+          <nav class="pdp-breadcrumb" aria-label="Breadcrumb">
+            <a href="/">Home</a>
+            <span class="pdp-breadcrumb-sep" aria-hidden="true">/</span>
+            <a href="/shop">Shop</a>
+            {product.category && (
+              <>
+                <span class="pdp-breadcrumb-sep" aria-hidden="true">/</span>
+                <a href={`/shop/category/${product.categorySlug}`}>{product.category}</a>
+              </>
+            )}
+            <span class="pdp-breadcrumb-sep" aria-hidden="true">/</span>
+            <span class="pdp-breadcrumb-current" aria-current="page">{product.name}</span>
+          </nav>
           <div class="prodcut-details-wrapper">
 
             <!-- Left: Images + Accordion -->
             <div class="product-details-left-block">
               <!-- Image Gallery (all 3 visible in 2-col grid, matching Webflow) -->
               <div class="product-lightbox-wrapper">
-                {allImages.slice(0, 3).map((img) => (
-                  <a href={`/images/${img}`} class="product-lightbox w-inline-block">
-                    <img loading="lazy" src={`/images/${img}`} alt={product.name} class="product-image" />
+                {allImages.slice(0, 3).map((im) => (
+                  <a href={sizedImg(im, 1600)} class="product-lightbox w-inline-block">
+                    <img
+                      loading="lazy"
+                      src={sizedImg(im, 700)}
+                      srcset={srcSet(im, [400, 700, 1000]) || undefined}
+                      sizes="(max-width: 991px) 90vw, 340px"
+                      alt={product.name}
+                      class="product-image"
+                    />
                   </a>
                 ))}
               </div>
@@ -54,10 +110,10 @@ const allImages = [product.thumbnail, product.thumbnailHover, ...product.images]
                 <div class="product-accordion" data-accordion>
                   <div class="product-accordion-toggle" data-accordion-toggle>
                     <div class="product-accordion-title-block">
-                      <img src="/images/product-accordion-icon-1.svg" loading="lazy" alt="Accordion Icon" class="product-accordion-icon" />
+                      <img src="/images/product-accordion-icon-1.svg" loading="lazy" alt="" class="product-accordion-icon" />
                       <div class="product-accordion-title">Product Information's</div>
                     </div>
-                    <img src="/images/accordion-arrow.svg" loading="lazy" alt="Accordion Arrow" class="product-accordion-arrow" />
+                    <img src="/images/accordion-arrow.svg" loading="lazy" alt="" class="product-accordion-arrow" />
                   </div>
                   <div class="product-accordion-body" style="height:0px" data-accordion-body>
                     <div class="product-accordion-inner">
@@ -73,10 +129,10 @@ const allImages = [product.thumbnail, product.thumbnailHover, ...product.images]
                 <div class="product-accordion" data-accordion>
                   <div class="product-accordion-toggle" data-accordion-toggle>
                     <div class="product-accordion-title-block">
-                      <img src="/images/product-accordion-icon-2.svg" loading="lazy" alt="Accordion Icon" class="product-accordion-icon" />
+                      <img src="/images/product-accordion-icon-2.svg" loading="lazy" alt="" class="product-accordion-icon" />
                       <div class="product-accordion-title">Size Advice</div>
                     </div>
-                    <img src="/images/accordion-arrow.svg" loading="lazy" alt="Accordion Arrow" class="product-accordion-arrow" />
+                    <img src="/images/accordion-arrow.svg" loading="lazy" alt="" class="product-accordion-arrow" />
                   </div>
                   <div class="product-accordion-body" style="height:0px" data-accordion-body>
                     <div class="product-accordion-inner">
@@ -105,10 +161,10 @@ const allImages = [product.thumbnail, product.thumbnailHover, ...product.images]
                 <div class="product-accordion" data-accordion>
                   <div class="product-accordion-toggle" data-accordion-toggle>
                     <div class="product-accordion-title-block">
-                      <img src="/images/product-accordion-icon-1.svg" loading="lazy" alt="Accordion Icon" class="product-accordion-icon" />
+                      <img src="/images/product-accordion-icon-1.svg" loading="lazy" alt="" class="product-accordion-icon" />
                       <div class="product-accordion-title">Shipping &amp; Returns</div>
                     </div>
-                    <img src="/images/accordion-arrow.svg" loading="lazy" alt="Accordion Arrow" class="product-accordion-arrow" />
+                    <img src="/images/accordion-arrow.svg" loading="lazy" alt="" class="product-accordion-arrow" />
                   </div>
                   <div class="product-accordion-body" style="height:0px" data-accordion-body>
                     <div class="product-accordion-inner">
@@ -130,22 +186,27 @@ const allImages = [product.thumbnail, product.thumbnailHover, ...product.images]
 
             <!-- Right: Product Info -->
             <div class="product-details-right-block">
-              <!-- Rating: individual small star icons + text (matching Webflow) -->
-              <div class="product-review-wrapper">
-                <div class="product-star-rating-block">
-                  <div style="display:flex;gap:3px;align-items:center;">
-                    {Array.from({ length: Math.floor(product.rating) }).map(() => (
-                      <img src="/images/star-full.svg" alt="" style="width:20px;height:20px;display:block;" />
-                    ))}
-                    {product.rating % 1 >= 0.5 && (
-                      <img src="/images/star-half.svg" alt="" style="width:20px;height:20px;display:block;" />
-                    )}
+              <!-- Rating: real reviews show stars + count; otherwise an honest "New In" eyebrow
+                   (the demo store has no review data, so fake 5-star rows are avoided). -->
+              {product.reviewCount > 0 ? (
+                <div class="product-review-wrapper">
+                  <div class="product-star-rating-block">
+                    <div style="display:flex;gap:3px;align-items:center;">
+                      {Array.from({ length: Math.floor(product.rating) }).map(() => (
+                        <img src="/images/star-full.svg" alt="" style="width:20px;height:20px;display:block;" />
+                      ))}
+                      {product.rating % 1 >= 0.5 && (
+                        <img src="/images/star-half.svg" alt="" style="width:20px;height:20px;display:block;" />
+                      )}
+                    </div>
+                    <div class="product-star-rating-text">({product.rating})</div>
                   </div>
-                  <div class="product-star-rating-text">({product.rating})</div>
+                  <div class="product-details-review-separator"></div>
+                  <div class="product-reveiw-amonut">{product.reviewCount} Reviews</div>
                 </div>
-                <div class="product-details-review-separator"></div>
-                <div class="product-reveiw-amonut">{product.reviewCount} Reviews</div>
-              </div>
+              ) : (
+                <div class="pdp-eyebrow">New In</div>
+              )}
 
               <h1 class="product-title">{product.name}</h1>
 
@@ -154,29 +215,71 @@ const allImages = [product.thumbnail, product.thumbnailHover, ...product.images]
                 <div class="product-details-pricing-block">
                   {product.isOnSale ? (
                     <>
-                      <div class="product-details-price">${product.price.toFixed(2)}</div>
+                      <div class="product-details-price">{formatMoney(product.price, product.currencyCode)}</div>
                       <div class="product-details-pricing-separator"></div>
-                      <div class="product-details-compare-price">${(product.comparePrice ?? product.price).toFixed(2)}</div>
+                      <div class="product-details-compare-price">{formatMoney(product.comparePrice ?? product.price, product.currencyCode)}</div>
                     </>
                   ) : (
-                    <div class="product-details-price">${product.price.toFixed(2)}</div>
+                    <div class="product-details-price">{formatMoney(product.price, product.currencyCode)}</div>
                   )}
                 </div>
                 {product.isOnSale && <div class="sale-badge">Sale</div>}
               </div>
 
               <!-- Stock -->
-              {product.inStock && (
+              {product.inStock ? (
                 <div class="stock-alert">
                   <div class="stock-alert-shape-block">
                     <div class="stock-alert-shape-wave"></div>
                   </div>
                   <div class="stock-alert-text">In Stock, Ready to ship</div>
                 </div>
+              ) : (
+                <div class="stock-alert stock-alert-out">
+                  <div class="stock-alert-text">Currently sold out</div>
+                </div>
               )}
 
-              <!-- Description -->
-              <p class="product-description">{product.description}</p>
+              <!-- Honest low-stock urgency (from real per-variant inventory; hidden
+                   unless a variant is genuinely low). Updated client-side per selection. -->
+              <div
+                class="pdp-low-stock"
+                id="pdpLowStock"
+                data-threshold={LOW_STOCK_THRESHOLD}
+                hidden={!showInitialLowStock}
+              >
+                <span class="pdp-low-stock-dot"></span>
+                <span class="pdp-low-stock-text">
+                  {showInitialLowStock ? `Only ${initialQty} left in stock` : ''}
+                </span>
+              </div>
+
+              <!-- Delivery estimate (date window computed client-side from today;
+                   reflects the selected variant's availability). -->
+              <div class="pdp-delivery" id="pdpDelivery" hidden>
+                <span class="pdp-delivery-icon-wrap">
+                  <svg class="pdp-delivery-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 4h13v11H1z" />
+                    <path d="M14 8h4l3 3v4h-7z" />
+                    <circle cx="6" cy="18" r="1.7" />
+                    <circle cx="18" cy="18" r="1.7" />
+                  </svg>
+                </span>
+                <span class="pdp-delivery-copy">
+                  <span class="pdp-delivery-label">Estimated delivery</span>
+                  <span class="pdp-delivery-text" id="pdpDeliveryText"></span>
+                </span>
+              </div>
+
+              <!-- Description (teaser — full copy + care notes in the accordion below) -->
+              <div class="pdp-description-wrap">
+                <p class={`product-description${isLongDesc ? ' pdp-description-clamp' : ''}`} id="pdpDescription">{product.description}</p>
+                {isLongDesc && (
+                  <button type="button" class="pdp-readmore" id="pdpReadMore">
+                    Read more <span aria-hidden="true">&#8594;</span>
+                  </button>
+                )}
+              </div>
 
               <!-- Add to Cart -->
               <div class="product-details-add-to-cart">
@@ -221,11 +324,13 @@ const allImages = [product.thumbnail, product.thumbnailHover, ...product.images]
 
                 <!-- Meta (with product-meta-icon matching Webflow) -->
                 <div class="product-meta-wrapper">
-                  <div class="product-meta-block">
-                    <div class="product-meta-icon"></div>
-                    <div class="product-meta-title">SKU:</div>
-                    <div class="product-meta-text">{product.sku}</div>
-                  </div>
+                  {product.sku && (
+                    <div class="product-meta-block">
+                      <div class="product-meta-icon"></div>
+                      <div class="product-meta-title">SKU:</div>
+                      <div class="product-meta-text">{product.sku}</div>
+                    </div>
+                  )}
                   <div class="product-meta-block">
                     <div class="product-meta-icon"></div>
                     <div class="product-meta-title">Category:</div>
@@ -253,25 +358,41 @@ const allImages = [product.thumbnail, product.thumbnailHover, ...product.images]
                     <button
                       class="w-commerce-commerceaddtocartbutton add-to-card-button"
                       id="addToCartBtn"
+                      data-variant-id={product.variantId}
+                      data-variants={JSON.stringify(product.variantMatrix ?? [])}
+                      disabled={!product.inStock}
                     >
-                      Add to Cart
+                      {product.inStock ? 'Add to Cart' : 'Sold Out'}
                     </button>
                   </div>
-                  <a href="/checkout" class="w-commerce-commercebuynowbutton buy-now-button">Buy now</a>
+                  <button type="button" id="buyNowBtn" class="w-commerce-commercebuynowbutton buy-now-button" disabled={!product.inStock}>Buy now</button>
+                  <button
+                    class="wishlist-heart-btn pdp-wishlist-btn"
+                    type="button"
+                    data-slug={product.slug}
+                    data-wishlist={JSON.stringify(wishItem)}
+                    aria-label="Add to wishlist"
+                    aria-pressed="false"
+                  >
+                    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                    </svg>
+                    <span class="wishlist-label">Add to Wishlist</span>
+                  </button>
                 </div>
 
                 <!-- Trust badges -->
                 <ul class="pdp-trust-row">
                   <li class="pdp-trust-item">
-                    <img src="/images/feature-icon-1.svg" loading="lazy" alt="" class="pdp-trust-icon" />
+                    <span class="pdp-trust-icon-wrap"><img src="/images/feature-icon-1.svg" loading="lazy" alt="" class="pdp-trust-icon" /></span>
                     <span>Free worldwide shipping</span>
                   </li>
                   <li class="pdp-trust-item">
-                    <img src="/images/feature-icon-2.svg" loading="lazy" alt="" class="pdp-trust-icon" />
+                    <span class="pdp-trust-icon-wrap"><img src="/images/feature-icon-2.svg" loading="lazy" alt="" class="pdp-trust-icon" /></span>
                     <span>Secure checkout</span>
                   </li>
                   <li class="pdp-trust-item">
-                    <img src="/images/feature-icon-3.svg" loading="lazy" alt="" class="pdp-trust-icon" />
+                    <span class="pdp-trust-icon-wrap"><img src="/images/feature-icon-3.svg" loading="lazy" alt="" class="pdp-trust-icon" /></span>
                     <span>30-day easy returns</span>
                   </li>
                 </ul>
@@ -282,6 +403,29 @@ const allImages = [product.thumbnail, product.thumbnailHover, ...product.images]
         </div>
       </div>
     </section>
+
+    <!-- Complete the Look (complementary cross-sell — Shopify COMPLEMENTARY intent) -->
+    {completeTheLook.length > 0 && (
+      <section class="product-section">
+        <div class="section-gap-bottom">
+          <div class="w-layout-blockcontainer container-default w-container">
+            <div class="section-title-block center">
+              <div class="section-subtitle reveal">Styled With</div>
+              <div class="section-title-inner">
+                <h2 class="section-title reveal">Complete the Look</h2>
+              </div>
+            </div>
+            <div class="complete-look-grid">
+              {completeTheLook.map((p) => (
+                <div class="product-card-block">
+                  <ProductCard product={p} headingTag="h3" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+    )}
 
     <!-- Related Products (slider matching Webflow structure) -->
     {relatedProducts.length > 0 && (
@@ -324,6 +468,94 @@ const allImages = [product.thumbnail, product.thumbnailHover, ...product.images]
       </section>
     )}
 
+    <!-- Testimonials (static social proof — reuses the homepage card design as a grid) -->
+    <section class="pdp-testimonial-section">
+      <div class="section-gap-bottom">
+        <div class="w-layout-blockcontainer container-default w-container">
+          <div class="section-title-block center">
+            <div class="section-subtitle reveal">Testimonial</div>
+            <div class="section-title-inner">
+              <h2 class="section-title reveal">What Customers Say</h2>
+            </div>
+          </div>
+          <div class="pdp-testimonial-grid">
+            {testimonials.map((t) => (
+              <div class="testimonial-card-block">
+                <div class="testimonial-content-wrapper">
+                  <div class="testimonial-content-block">
+                    <div class="testimonial-author-info-block">
+                      <div class="testimonial-reveiw-wrapper">
+                        <div class="testimonial-reveiw-block">
+                          {Array.from({ length: Math.floor(t.rating) }).map(() => (
+                            <img src="/images/star-full.svg" loading="lazy" alt="Testimonial Star" class="testimonial-star" />
+                          ))}
+                          {t.rating % 1 >= 0.5 && (
+                            <img src="/images/star-half.svg" loading="lazy" alt="Testimonial Star" class="testimonial-star" />
+                          )}
+                          {Array.from({ length: 5 - Math.ceil(t.rating) }).map(() => (
+                            <img src="/images/star.svg" loading="lazy" alt="Testimonial Star" class="testimonial-star" />
+                          ))}
+                        </div>
+                        <div class="testimonial-rating-text">({t.rating.toFixed(1)})</div>
+                      </div>
+                      <div class="testimonial-author-info">
+                        <div class="testimonial-author-name">{t.name}</div>
+                        <div class="testimonial-author-info-dash"></div>
+                        <div class="testimonial-author-designation">{t.designation}</div>
+                      </div>
+                    </div>
+                    <p class="testimonial-author-text">{t.quote}</p>
+                  </div>
+                  <div class="testimonial-image-block">
+                    <img src={`/images/${t.image}`} loading="lazy" alt={t.name} class="testimonial-image" />
+                  </div>
+                </div>
+                <div class="testimonial-border"></div>
+                <div class="testimonial-product-wrapper w-dyn-list">
+                  <div role="list" class="testimonial-product-list w-dyn-items">
+                    <div role="listitem" class="testimonial-product-item w-dyn-item">
+                      <div class="testimonial-product-block">
+                        <a href={`/products/${t.productSlug}`} class="testimonial-product-thumbnail-block w-inline-block">
+                          <img loading="lazy" src={`/images/${t.productThumbnail}`} alt={t.productName} class="testimonial-product-thumbnail" />
+                        </a>
+                        <div class="testimonial-product-info-block">
+                          <a href={`/products/${t.productSlug}`} class="product-link-block w-inline-block">
+                            <div class="product-name">{t.productName}</div>
+                          </a>
+                          <div class="product-card-pricing-block">
+                            <div class="product-card-sale-price">${t.productPrice.toFixed(2)}</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Recently Viewed (hidden until the client finds prior history in localStorage) -->
+    <section
+      class="product-section recently-viewed-section"
+      id="recentlyViewedSection"
+      data-product-snapshot={JSON.stringify(recentSnapshot)}
+      hidden
+    >
+      <div class="section-gap-bottom">
+        <div class="w-layout-blockcontainer container-default w-container">
+          <div class="section-title-block center">
+            <div class="section-title-inner">
+              <h2 class="section-title">Recently Viewed</h2>
+            </div>
+          </div>
+          <div class="recently-viewed-grid" id="recentlyViewedGrid"></div>
+        </div>
+      </div>
+    </section>
+
     <!-- Lightbox modal (vanilla JS, no dependency) -->
     <div class="pdp-lightbox" id="pdpLightbox" role="dialog" aria-modal="true" aria-label="Product image viewer" aria-hidden="true">
       <button type="button" class="pdp-lightbox-close" id="pdpLightboxClose" aria-label="Close image viewer">&#10005;</button>
@@ -332,12 +564,44 @@ const allImages = [product.thumbnail, product.thumbnailHover, ...product.images]
       <button type="button" class="pdp-lightbox-nav next" id="pdpLightboxNext" aria-label="Next image">&#8250;</button>
     </div>
 
+    <!-- Sticky add-to-cart bar — appears (mobile + desktop) once the buy box scrolls off -->
+    <div class="pdp-sticky-bar" id="pdpStickyBar" aria-hidden="true">
+      <div class="pdp-sticky-inner w-layout-blockcontainer container-default w-container">
+        <a href={`/products/${product.slug}`} class="pdp-sticky-product">
+          <img src={sizedImg(product.thumbnail, 120)} alt={product.name} class="pdp-sticky-thumb" />
+          <span class="pdp-sticky-meta">
+            <span class="pdp-sticky-name">{product.name}</span>
+            <span class="pdp-sticky-price">
+              {formatMoney(product.price, product.currencyCode)}
+              {product.isOnSale && (
+                <span class="pdp-sticky-compare">{formatMoney(product.comparePrice ?? product.price, product.currencyCode)}</span>
+              )}
+            </span>
+          </span>
+        </a>
+        <button
+          class="w-commerce-commerceaddtocartbutton add-to-card-button pdp-sticky-btn"
+          id="pdpStickyAdd"
+          data-variant-id={product.variantId}
+          disabled={!product.inStock}
+        >
+          {product.inStock ? 'Add to Cart' : 'Sold Out'}
+        </button>
+      </div>
+    </div>
+
   </main>
   <Footer />
 </BaseLayout>
 
+<style>
+  .stock-alert-out .stock-alert-text { color: var(--_color---red-500, #d0473e); }
+  .add-to-card-button:disabled,
+  .buy-now-button:disabled { opacity: 0.5; cursor: not-allowed; }
+</style>
+
 <script>
-  import { addToCart } from '@/lib/cart';
+  import { addItem, goToCheckout } from '@/lib/cart';
 
   // Size selector
   const sizeSelector = document.getElementById('sizeSelector');
@@ -387,45 +651,188 @@ const allImages = [product.thumbnail, product.thumbnailHover, ...product.images]
   });
   qtyInputEl?.addEventListener('change', () => setQty(parseInt(qtyInputEl.value || '1', 10)));
 
-  // Add to cart
+  // Resolve the selected (size, color) to a Shopify variant + reflect availability.
+  interface VariantOption { id: string; available: boolean; quantity?: number | null; options: Record<string, string> }
   const addToCartBtn = document.getElementById('addToCartBtn') as HTMLButtonElement | null;
-  if (addToCartBtn) {
-    const defaultLabel = addToCartBtn.textContent || 'Add to Cart';
-    let resetTimer: number | undefined;
-    addToCartBtn.addEventListener('click', () => {
-      const qty = clampQty(parseInt(qtyInputEl?.value || '1', 10));
-      const slug = window.location.pathname.split('/').pop() || '';
-      const nameEl = document.querySelector('.product-title');
-      const priceEl = document.querySelector('.product-details-price');
-      const imgEl = document.querySelector('.product-lightbox img') as HTMLImageElement;
-      addToCart({
-        id: `${slug}-${selectedSize}-${selectedColor}`,
-        slug,
-        name: nameEl?.textContent || '',
-        price: parseFloat(priceEl?.textContent?.replace('$', '') || '0'),
-        image: imgEl?.src || '',
-        quantity: qty,
-        size: selectedSize,
-        color: selectedColor,
+  const buyNowBtn = document.getElementById('buyNowBtn') as HTMLButtonElement | null;
+  const stickyAddBtn = document.getElementById('pdpStickyAdd') as HTMLButtonElement | null;
+  const lowStockEl = document.getElementById('pdpLowStock');
+  const lowStockTextEl = lowStockEl?.querySelector('.pdp-low-stock-text') as HTMLElement | null;
+  const lowStockThreshold = Number(lowStockEl?.getAttribute('data-threshold') || '10');
+  const addDefaultLabel = 'Add to Cart';
+  let variantMatrix: VariantOption[] = [];
+  try {
+    variantMatrix = JSON.parse(addToCartBtn?.getAttribute('data-variants') || '[]');
+  } catch {
+    variantMatrix = [];
+  }
+  const defaultVariantId = addToCartBtn?.getAttribute('data-variant-id') || '';
+  // Single-variant availability: the server set the button disabled when out of stock.
+  const productInStock = !(addToCartBtn?.disabled ?? false);
+
+  // ── Delivery estimate: a business-day window from today ──
+  const deliveryEl = document.getElementById('pdpDelivery');
+  const deliveryTextEl = document.getElementById('pdpDeliveryText');
+  function addBusinessDays(from: Date, days: number): Date {
+    const d = new Date(from.getTime());
+    let added = 0;
+    while (added < days) {
+      d.setDate(d.getDate() + 1);
+      const wd = d.getDay();
+      if (wd !== 0 && wd !== 6) added++;
+    }
+    return d;
+  }
+  if (deliveryTextEl) {
+    const now = new Date();
+    const fmt = (d: Date) =>
+      d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    deliveryTextEl.textContent =
+      fmt(addBusinessDays(now, 3)) + ' – ' + fmt(addBusinessDays(now, 7));
+  }
+
+  function findVariant(): VariantOption | null {
+    if (!variantMatrix.length) return null;
+    return (
+      variantMatrix.find((v) => {
+        if (selectedSize && (v.options.size ?? '') !== selectedSize) return false;
+        if (selectedColor && (v.options.color ?? '') !== selectedColor) return false;
+        return true;
+      }) ?? null
+    );
+  }
+  function resolveVariantId(): string {
+    if (!variantMatrix.length) return defaultVariantId;
+    return (findVariant() ?? variantMatrix[0]).id;
+  }
+
+  // Honest "Only N left" — reflects the selected variant's real inventory.
+  function updateLowStock(): void {
+    if (!lowStockEl || !lowStockTextEl) return;
+    const qty = variantMatrix.length ? findVariant()?.quantity : null;
+    if (qty != null && qty > 0 && qty <= lowStockThreshold) {
+      lowStockTextEl.textContent = `Only ${qty} left in stock`;
+      lowStockEl.hidden = false;
+    } else {
+      lowStockEl.hidden = true;
+    }
+  }
+
+  // Reflect the selected variant's stock state on every buy button + the low-stock note.
+  function updateAddState(): void {
+    const available = variantMatrix.length ? (findVariant()?.available ?? false) : productInStock;
+    if (variantMatrix.length) {
+      [addToCartBtn, stickyAddBtn].forEach((btn) => {
+        if (!btn || btn.classList.contains('is-added')) return;
+        btn.disabled = !available;
+        btn.textContent = available ? addDefaultLabel : 'Sold Out';
       });
-      // Brief confirmation state, then open the drawer
+      if (buyNowBtn) buyNowBtn.disabled = !available;
+    }
+    // Delivery estimate only makes sense for a buyable selection.
+    if (deliveryEl) deliveryEl.hidden = !available;
+    updateLowStock();
+  }
+  sizeSelector?.querySelectorAll<HTMLElement>('[data-size]').forEach((b) =>
+    b.addEventListener('click', updateAddState),
+  );
+  colorSelector?.querySelectorAll<HTMLElement>('[data-color]').forEach((b) =>
+    b.addEventListener('click', updateAddState),
+  );
+  updateAddState();
+
+  // Shared add-to-cart with per-button feedback (drives both the main and sticky buttons).
+  function wireAdd(btn: HTMLButtonElement): void {
+    let resetTimer: number | undefined;
+    btn.addEventListener('click', async () => {
+      const variantId = resolveVariantId();
+      if (!variantId) return;
+      const qty = clampQty(parseInt(qtyInputEl?.value || '1', 10));
+      btn.disabled = true;
+      const { cart, error } = await addItem(variantId, qty);
       window.clearTimeout(resetTimer);
-      addToCartBtn.classList.add('is-added');
-      addToCartBtn.textContent = 'Added ✓';
-      addToCartBtn.disabled = true;
-      resetTimer = window.setTimeout(() => {
-        addToCartBtn.classList.remove('is-added');
-        addToCartBtn.textContent = defaultLabel;
-        addToCartBtn.disabled = false;
-      }, 1200);
-      if (typeof (window as any).__dojeenOpenCart === 'function') {
-        (window as any).__dojeenOpenCart();
+      if (cart) {
+        btn.classList.add('is-added');
+        btn.textContent = 'Added ✓';
+      } else {
+        btn.textContent = error ? 'Unavailable' : 'Try again';
       }
+      resetTimer = window.setTimeout(() => {
+        btn.classList.remove('is-added');
+        btn.textContent = addDefaultLabel;
+        btn.disabled = false;
+        updateAddState();
+      }, 1200);
+    });
+  }
+  if (addToCartBtn) wireAdd(addToCartBtn);
+  if (stickyAddBtn) wireAdd(stickyAddBtn);
+
+  // Buy now: add then jump straight to Shopify's hosted checkout.
+  if (buyNowBtn) {
+    buyNowBtn.addEventListener('click', async () => {
+      const variantId = resolveVariantId();
+      if (!variantId) return;
+      const qty = clampQty(parseInt(qtyInputEl?.value || '1', 10));
+      buyNowBtn.disabled = true;
+      const { cart } = await addItem(variantId, qty, { open: false });
+      if (cart) goToCheckout();
+      else buyNowBtn.disabled = false;
+    });
+  }
+
+  // Sticky bar: reveal once the main buy box has scrolled above the viewport.
+  (function () {
+    const bar = document.getElementById('pdpStickyBar');
+    const anchor = document.querySelector('.add-to-cart-button-wrapper');
+    if (!bar || !anchor || !('IntersectionObserver' in window)) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        const e = entries[0];
+        const show = !e.isIntersecting && e.boundingClientRect.top < 0;
+        bar.classList.toggle('is-visible', show);
+        bar.setAttribute('aria-hidden', show ? 'false' : 'true');
+      },
+      { threshold: 0 },
+    );
+    io.observe(anchor);
+  })();
+</script>
+
+<script>
+  // ── Recently Viewed: record this product, then render prior history ──
+  import { recordRecent, renderRecentlyViewed } from '@/lib/recently-viewed';
+
+  const rvSection = document.getElementById('recentlyViewedSection');
+  if (rvSection) {
+    let snap: any = null;
+    try {
+      snap = JSON.parse(rvSection.getAttribute('data-product-snapshot') || 'null');
+    } catch {
+      snap = null;
+    }
+    if (snap && snap.slug) recordRecent(snap);
+    renderRecentlyViewed({
+      section: rvSection,
+      mount: document.getElementById('recentlyViewedGrid'),
+      excludeSlug: snap?.slug,
+      limit: 4,
     });
   }
 </script>
 
 <script is:inline>
+  /* ── Description "Read more": expand the clamped teaser in place ── */
+  (function () {
+    var rm = document.getElementById('pdpReadMore');
+    var desc = document.getElementById('pdpDescription');
+    if (!rm || !desc) return;
+    rm.addEventListener('click', function () {
+      desc.classList.remove('pdp-description-clamp');
+      rm.style.display = 'none';
+    });
+  })();
+
   /* ── Accordion ── */
   (function () {
     document.querySelectorAll('[data-accordion]').forEach(function (accordion) {
@@ -468,10 +875,16 @@ const allImages = [product.thumbnail, product.thumbnailHover, ...product.images]
       var mc = maxCur();
       if (cur > mc) cur = mc;
       mask.style.transform = 'translateX(-' + (cur * slideW()) + 'px)';
+      // Reflect bounds on the arrows (and hide them entirely if nothing scrolls).
+      var noScroll = mc === 0;
+      slider.classList.toggle('is-static', noScroll);
+      prev.classList.toggle('is-disabled', cur <= 0);
+      next.classList.toggle('is-disabled', cur >= mc);
     }
     prev.addEventListener('click', function () { if (cur > 0) { cur--; update(); } });
     next.addEventListener('click', function () { if (cur < maxCur()) { cur++; update(); } });
     window.addEventListener('resize', function () { cur = Math.min(cur, maxCur()); update(); });
+    update(); // set initial transform + arrow state
   })();
 
   /* ── Gallery lightbox ── */

@@ -4,22 +4,35 @@ import Header from '@/components/layout/Header.astro';
 import Footer from '@/components/layout/Footer.astro';
 import CommonHero from '@/components/ui/CommonHero.astro';
 import ProductCard from '@/components/sections/ProductCard.astro';
-import { products, getBestSellers } from '@/data/products';
+import { getAllProducts, getBestSellers, getCategories, getProductsByCategory } from '@/lib/catalog';
 import { features } from '@/data/features';
 
-const bestSellers = getBestSellers().slice(0, 4);
+const [allProducts, bestSellers, categories] = await Promise.all([
+  getAllProducts(100),
+  getBestSellers(4),
+  getCategories(),
+]);
 
+// Tabs: "All" + the first three collections.
 const tabs = [
-  { label: 'All',           key: 'all',     slug: '' },
-  { label: 'Summer Tops',   key: 'tops',    slug: 'tops' },
-  { label: 'Denim Jackets', key: 'jackets', slug: 'jackets' },
-  { label: 'Smart Casual',  key: 'trousers',slug: 'trousers' },
+  { label: 'All', key: 'all', slug: '' },
+  ...categories.slice(0, 3).map((c) => ({ label: c.name, key: c.slug, slug: c.slug })),
 ];
+
+// Tag products with their collection so the tab filter narrows correctly.
+const catOfSlug = new Map<string, string>();
+await Promise.all(
+  categories.map(async (c) => {
+    const ps = await getProductsByCategory(c.slug, 100);
+    for (const p of ps) if (!catOfSlug.has(p.slug)) catOfSlug.set(p.slug, c.slug);
+  }),
+);
+const products = allProducts.map((p) => ({ ...p, categorySlug: catOfSlug.get(p.slug) ?? '' }));
 ---
 
 <BaseLayout title="Shop Without Sidebar — Dojeen" description="Browse our complete fashion collection.">
   <Header variant="default" currentPath="/shop/no-sidebar" />
-  <main class="main-wrapper">
+  <main id="main-content" class="main-wrapper">
 
     <CommonHero subtitle="Explore our product" title="Our Product Collection" bgVariant="two" center={true} />
 

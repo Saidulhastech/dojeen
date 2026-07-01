@@ -1,4 +1,5 @@
 ---
+export const prerender = true;
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import Header from '@/components/layout/Header.astro';
 import Footer from '@/components/layout/Footer.astro';
@@ -6,7 +7,7 @@ import Footer from '@/components/layout/Footer.astro';
 
 <BaseLayout title="Contact Us — Dojeen" description="Get in touch with the Dojeen team. We'd love to hear from you.">
   <Header variant="default" currentPath="/contact" />
-  <main class="main-wrapper">
+  <main id="main-content" class="main-wrapper">
 
     <!-- Breadcrumb -->
     <section class="breadcrumb-section">
@@ -37,19 +38,19 @@ import Footer from '@/components/layout/Footer.astro';
               <form id="contactForm" name="Contact-Form" class="contact-form">
                 <div class="home-contact-form-wrapper">
                   <div class="input-field-wrapper">
-                    <input class="input-field w-input" maxlength="256" name="Full-Name" placeholder="Full Name" type="text" />
+                    <input class="input-field w-input" maxlength="256" name="Full-Name" placeholder="Full Name" type="text" aria-label="Full name" />
                   </div>
                   <div class="input-field-wrapper">
-                    <input class="input-field w-input" maxlength="256" name="Phone-Number" placeholder="Phone Number" type="tel" />
+                    <input class="input-field w-input" maxlength="256" name="Phone-Number" placeholder="Phone Number" type="tel" aria-label="Phone number" />
                   </div>
                   <div class="input-field-wrapper">
-                    <input class="input-field w-input" maxlength="256" name="Email-Address" placeholder="Email Address" type="email" required />
+                    <input class="input-field w-input" maxlength="256" name="Email-Address" placeholder="Email Address" type="email" aria-label="Email address" required />
                   </div>
                   <div class="input-field-wrapper">
-                    <input class="input-field w-input" maxlength="256" name="Subject" placeholder="Subject" type="text" />
+                    <input class="input-field w-input" maxlength="256" name="Subject" placeholder="Subject" type="text" aria-label="Subject" />
                   </div>
                   <div class="input-field-wrapper contact-full-width">
-                    <textarea name="Message" maxlength="5000" placeholder="How Can We Help You?" class="input-field text-area w-input"></textarea>
+                    <textarea name="Message" maxlength="5000" placeholder="How Can We Help You?" class="input-field text-area w-input" aria-label="Message"></textarea>
                   </div>
                   <div class="submit-button-wrapper contact-full-width">
                     <input type="submit" class="submit-button w-button" value="Send Message" />
@@ -189,10 +190,10 @@ import Footer from '@/components/layout/Footer.astro';
                   </div>
                 </div>
                 <!-- Arrows -->
-                <div class="location-slider-arrow left" id="locationPrev" role="button" aria-label="Previous slide">
+                <div class="location-slider-arrow left" id="locationPrev" role="button" tabindex="0" aria-label="Previous slide">
                   <div class="location-slider-arrow-icon w-icon-slider-left"></div>
                 </div>
-                <div class="location-slider-arrow right" id="locationNext" role="button" aria-label="Next slide">
+                <div class="location-slider-arrow right" id="locationNext" role="button" tabindex="0" aria-label="Next slide">
                   <div class="location-slider-arrow-icon w-icon-slider-right"></div>
                 </div>
               </div>
@@ -291,5 +292,16 @@ import Footer from '@/components/layout/Footer.astro';
 
     prev.addEventListener('click', function () { goTo(idx - 1); });
     next.addEventListener('click', function () { goTo(idx + 1); });
+    // Keyboard operability for the role="button" arrows (Enter / Space).
+    function key(el, delta) {
+      el.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+          e.preventDefault();
+          goTo(idx + delta);
+        }
+      });
+    }
+    key(prev, -1);
+    key(next, 1);
   })();
 </script>

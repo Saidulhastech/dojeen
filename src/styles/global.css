@@ -380,6 +380,12 @@ body,
   z-index: 2;
 }
 
+@media screen and (min-width: 1920px) {
+  .offers-collection {
+    max-width: 335px;
+  }
+}
+
 /* Partner slider: crossfade (data-animation="cross" in Webflow).
    Active slide is position:relative so the mask height equals the active slide's height.
    Inactive slides are position:absolute overlaid at opacity:0. */
@@ -1068,6 +1074,15 @@ a.header-dropdown-text-block {
     padding-right: 0;
   }
 }
+/* Arrow states (set by the slider script): dim at a bound, hide both when the
+   track has nothing to scroll (e.g. ≤4 related items on desktop). */
+#relatedSlider .product-slider-arrow.is-disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+#relatedSlider.is-static .product-slider-arrow {
+  display: none;
+}
 
 /* ─── Hero section: editorial framing + refined stats (quiet-luxury polish) ─── */
 /* Frame the hero image with softened inner corners + a slow Ken Burns drift so the
@@ -1647,30 +1662,54 @@ a.header-dropdown-text-block {
   margin: 0;
 }
 
-/* ─── PDP: add-to-cart confirmation state ─── */
-.add-to-card-button.is-added {
-  background-color: var(--_color---green-500, #14854e);
-  border-color: var(--_color---green-500, #14854e);
-  color: var(--_color---white);
-}
-.add-to-card-button:disabled {
-  cursor: default;
+/* ─── PDP: buy-box actions (quantity + Add to Cart / Buy now / Wishlist) ─────
+   Hierarchy: solid primary (Add to Cart) → outline secondary (Buy now) →
+   text-style tertiary (Wishlist). Sharp 2px corners keep the theme's
+   architectural button language; a shared 56px height gives the group presence. */
+.product-add-to-cart-block { gap: 12px; }
+
+.add-to-card-button,
+.buy-now-button {
+  min-height: 56px;
+  border-radius: 2px;
+  letter-spacing: var(--_letter-spacing---letter-space-3);
+  transition: background-color 0.25s ease, color 0.25s ease,
+              box-shadow 0.25s ease, transform 0.12s ease;
 }
 
-/* Add to Cart fills the row beside the qty stepper (was fixed-width via 130px side
-   padding, leaving a gap). Square it + the buy-now button + stepper for consistency
-   with the site's architectural button language. */
+/* Primary — Add to Cart stays solid black and lifts on hover (no wash-out invert) */
 .add-to-card-button {
   flex: 1 1 auto;
   padding-left: 28px;
   padding-right: 28px;
-  border-radius: 2px;
 }
+.add-to-card-button:hover:not(:disabled):not(.is-added) {
+  background-color: var(--_color---black);
+  color: var(--_color---white);
+  box-shadow: 0 8px 22px rgba(26, 23, 20, 0.22);
+}
+.add-to-card-button:active:not(:disabled) { transform: translateY(1px); }
+
+/* Secondary — Buy now: outline that inverts to solid on hover (webflow default) */
 .buy-now-button {
-  border-radius: 2px;
+  width: 100%;
+  margin-top: 12px;
 }
+.buy-now-button:active:not(:disabled) { transform: translateY(1px); }
+
+/* Success + disabled states */
+.add-to-card-button.is-added {
+  background-color: var(--_color---green-500, #14854e);
+  border-color: var(--_color---green-500, #14854e);
+  color: var(--_color---white);
+  box-shadow: none;
+}
+.add-to-card-button:disabled { cursor: default; }
+
+/* Quantity stepper — sized to match the 56px button height */
 .pdp-qty-stepper {
   border-radius: 2px;
+  min-height: 56px;
 }
 
 /* ─── PDP: gallery hover-zoom ─── */
@@ -1817,14 +1856,593 @@ a.header-dropdown-text-block {
 .pdp-trust-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   font-size: var(--_font-sizes---body-text-small);
-  color: var(--_color---neutral-600);
+  color: var(--_color---neutral-700, #2a2724);
+}
+/* Icon sits in a soft circular chip so the reassurance row reads as a designed
+   trio rather than a loose bullet list. */
+.pdp-trust-icon-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background-color: var(--_color---neutral-100);
+  border: 1px solid var(--_color---neutral-200);
 }
 .pdp-trust-icon {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PDP design refinements (additive — preserves Webflow classes)
+   ═══════════════════════════════════════════════════════════ */
+
+/* ─── Editorial breadcrumb above the two-column layout ─── */
+.pdp-breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 30px;
+  font-family: var(--_font-family---font-famity-body);
+  font-size: var(--_font-sizes---body-text-small);
+  line-height: 1.2;
+  color: var(--_color---neutral-500);
+}
+.pdp-breadcrumb a {
+  color: var(--_color---neutral-600);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+.pdp-breadcrumb a:hover {
+  color: var(--_color---red-500);
+}
+.pdp-breadcrumb-sep {
+  color: var(--_color---neutral-400);
+}
+.pdp-breadcrumb-current {
+  color: var(--_color---black);
+  font-weight: var(--_font-weight---medium);
+}
+
+/* ─── "New In" eyebrow shown in place of an empty 0-review star row ─── */
+.pdp-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  padding: 5px 13px;
+  border: 1px solid var(--_color---black);
+  border-radius: 100px;
+  font-family: var(--_font-family---font-famity-body);
+  font-size: 12px;
+  font-weight: var(--_font-weight---semi-bold);
+  letter-spacing: var(--_letter-spacing---letter-space-3);
+  text-transform: uppercase;
+  color: var(--_color---black);
+}
+
+/* ─── Description teaser: clamp long copy + reveal-in-place "Read more" ─── */
+.pdp-description-wrap {
+  margin-bottom: 24px;
+}
+.pdp-description-wrap .product-description {
+  margin-bottom: 0;
+}
+.pdp-description-clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.pdp-readmore {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--_font-family---font-famity-body);
+  font-size: var(--_font-sizes---body-text-small);
+  font-weight: var(--_font-weight---medium);
+  color: var(--_color---black);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  transition: color 0.2s ease;
+}
+.pdp-readmore span {
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+.pdp-readmore:hover {
+  color: var(--_color---red-500);
+}
+.pdp-readmore:hover span {
+  transform: translateX(3px);
+}
+
+/* ─── Extend the sticky purchase rail into the 992–1440px range ───
+   (webflow.css already pins it at ≥1440px; with the description now clamped the
+   column is short enough for sticky to be useful on standard laptops too). */
+@media (min-width: 992px) and (max-width: 1439.98px) {
+  .product-details-right-block {
+    position: sticky;
+    top: 90px;
+  }
+}
+
+/* ─── Recently Viewed: responsive product grid (client-rendered) ─── */
+.recently-viewed-section[hidden] {
+  display: none;
+}
+.recently-viewed-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  animation: rvFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+/* These cards are injected by JS, so ProductCard.astro's *scoped* 3:4 ratio can't
+   reach them — they'd fall back to webflow.css's square ratio and crop the portrait
+   fashion photos. Re-apply the portrait ratio here. */
+.recently-viewed-grid .product-main-thumbnail,
+.recently-viewed-grid .product-secondary-thumbnail {
+  aspect-ratio: 3 / 4;
+  width: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+@media (max-width: 991px) {
+  .recently-viewed-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 479px) {
+  .recently-viewed-grid {
+    gap: 16px;
+  }
+}
+@keyframes rvFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .recently-viewed-grid { animation: none; }
+}
+
+/* ─── PDP testimonials: homepage cards laid out as a static responsive grid ─── */
+.pdp-testimonial-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+  align-items: start;
+}
+/* The homepage caps the card at 645px for its marquee; in the grid let each card
+   fill its column, and trim the generous padding + author photo so the horizontal
+   text/photo layout still breathes at narrower (3-up) widths. */
+.pdp-testimonial-grid .testimonial-card-block {
+  max-width: none;
+  padding: 30px;
+}
+.pdp-testimonial-grid .testimonial-image-block {
+  max-width: 92px;
+}
+.pdp-testimonial-grid .testimonial-image {
+  width: 100%;
+  height: auto;
+}
+
+/* ─── PDP: honest low-stock indicator (real per-variant inventory) ─── */
+.pdp-low-stock {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  font-family: var(--_font-family---font-famity-body);
+  font-size: var(--_font-sizes---body-text-small);
+  font-weight: var(--_font-weight---medium);
+  color: var(--_color---red-500);
+}
+.pdp-low-stock[hidden] {
+  display: none;
+}
+.pdp-low-stock-dot {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background-color: var(--_color---red-500);
+  animation: pdpLowStockPulse 1.6s ease-in-out infinite;
+}
+@keyframes pdpLowStockPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(208, 71, 62, 0.5); }
+  50% { box-shadow: 0 0 0 5px rgba(208, 71, 62, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pdp-low-stock-dot { animation: none; }
+}
+
+/* ─── PDP: delivery estimate (date window computed client-side) ─── */
+.pdp-delivery {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 18px;
+  margin-bottom: 24px;
+  padding: 12px 16px;
+  border: 1px solid var(--_color---neutral-300);
+  border-radius: var(--_border-radius---radius-s);
+  background: var(--_color---neutral-100, #faf9f7);
+}
+.pdp-delivery[hidden] { display: none; }
+.pdp-delivery-icon-wrap {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--_color---white);
+  border: 1px solid var(--_color---neutral-300);
+  color: var(--_color---black);
+}
+.pdp-delivery-icon { display: block; }
+.pdp-delivery-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.3;
+}
+.pdp-delivery-label {
+  font-size: 11px;
+  font-weight: var(--_font-weight---medium);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--_color---neutral-600);
+}
+.pdp-delivery-text {
+  font-family: var(--_font-family---font-famity-heading);
+  font-size: var(--_font-sizes---body-text-medium, 16px);
+  font-weight: var(--_font-weight---semi-bold);
+  color: var(--_color---black);
+}
+
+/* ─── PDP: "Complete the Look" cross-sell grid (server-rendered ProductCards) ─── */
+.complete-look-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+@media (max-width: 991px) {
+  .complete-look-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 479px) {
+  .complete-look-grid {
+    gap: 16px;
+  }
+}
+
+/* ─── PDP: sticky add-to-cart bar (mobile + desktop) ─── */
+.pdp-sticky-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 60;
+  background-color: var(--_color---white);
+  border-top: 1px solid var(--_color---neutral-300);
+  box-shadow: 0 -10px 30px -18px rgba(26, 23, 20, 0.35);
+  transform: translateY(100%);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+.pdp-sticky-bar.is-visible {
+  transform: translateY(0);
+}
+.pdp-sticky-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.pdp-sticky-product {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  flex: 1 1 auto;
+  text-decoration: none;
+  color: inherit;
+}
+.pdp-sticky-thumb {
+  width: 48px;
+  height: 60px;
+  flex-shrink: 0;
+  object-fit: cover;
+  object-position: center top;
+  border-radius: 4px;
+  border: 1px solid var(--_color---neutral-300);
+}
+.pdp-sticky-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.pdp-sticky-name {
+  font-family: var(--_font-family---font-famity-body);
+  font-weight: var(--_font-weight---medium);
+  color: var(--_color---black);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pdp-sticky-price {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-weight: var(--_font-weight---semi-bold);
+  color: var(--_color---black);
+}
+.pdp-sticky-compare {
+  font-weight: var(--_font-weight---regular, 400);
+  font-size: var(--_font-sizes---body-text-small);
+  color: var(--_color---neutral-500);
+  text-decoration: line-through;
+}
+.pdp-sticky-btn {
+  flex: 0 0 auto;
+  width: auto;
+  margin: 0;
+  justify-content: center;
+  white-space: nowrap;
+}
+@media (max-width: 767px) {
+  .pdp-sticky-name {
+    max-width: 150px;
+  }
+  .pdp-sticky-btn {
+    padding-left: 22px;
+    padding-right: 22px;
+  }
+}
+@media (max-width: 479px) {
+  .pdp-sticky-product {
+    gap: 10px;
+  }
+  .pdp-sticky-thumb {
+    width: 42px;
+    height: 52px;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Wishlist (client-side, localStorage) — additive, preserves
+   Webflow classes
+   ═══════════════════════════════════════════════════════════ */
+
+/* ─── Heart toggle: shared icon (fill toggles via .is-wished) ─── */
+.wishlist-heart-btn {
+  cursor: pointer;
+  color: var(--_color---black);
+  -webkit-tap-highlight-color: transparent;
+}
+.wishlist-heart-btn svg {
+  display: block;
+}
+.wishlist-heart-btn svg path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  transition: fill 0.2s ease, stroke 0.2s ease;
+}
+.wishlist-heart-btn.is-wished {
+  color: var(--_color---red-500);
+}
+.wishlist-heart-btn.is-wished svg path {
+  fill: var(--_color---red-500);
+  stroke: var(--_color---red-500);
+}
+.wishlist-heart-btn:focus-visible {
+  outline: 2px solid var(--_color---black);
+  outline-offset: 2px;
+}
+
+/* On a product card: circular chip overlay, top-right of the image */
+.product-tab-wrapper .wishlist-heart-btn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 3;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--_color---neutral-300);
+  box-shadow: 0 1px 3px rgba(26, 23, 20, 0.12);
+  transition: background-color 0.2s ease, transform 0.2s ease, color 0.2s ease;
+}
+.product-tab-wrapper .wishlist-heart-btn:hover {
+  transform: scale(1.08);
+}
+.product-tab-wrapper .wishlist-heart-btn svg {
+  width: 18px;
+  height: 18px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .product-tab-wrapper .wishlist-heart-btn:hover { transform: none; }
+}
+
+/* ─── PDP: full-width "Add to Wishlist" outline button ─── */
+.pdp-wishlist-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px 24px;
+  background: transparent;
+  border: none;
+  color: var(--_color---neutral-700, #2a2724);
+  font-family: var(--_font-family---font-famity-body);
+  font-size: var(--_font-sizes---body-text);
+  font-weight: var(--_font-weight---medium);
+  letter-spacing: var(--_letter-spacing---letter-space-3);
+  cursor: pointer;
+  transition: color 0.25s ease;
+}
+.pdp-wishlist-btn svg {
+  width: 18px;
+  height: 18px;
+}
+/* Label underlines on hover; the heart (via .wishlist-heart-btn) follows
+   currentColor and fills red once saved. */
+.pdp-wishlist-btn .wishlist-label {
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 4px;
+  transition: text-decoration-color 0.25s ease;
+}
+.pdp-wishlist-btn:hover { color: var(--_color---black); }
+.pdp-wishlist-btn:hover .wishlist-label { text-decoration-color: currentColor; }
+.pdp-wishlist-btn.is-wished { color: var(--_color---red-500); }
+
+/* ─── Header: wishlist link + count badge ─── */
+/* Bordered 42×42 box matching the account icon (.user-link-blcok) */
+.wishlist-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--_color---neutral-400);
+  border-radius: 2px;
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+.wishlist-link:hover {
+  background-color: var(--_color---black);
+  border-color: var(--_color---black);
+  color: var(--_color---white);
+}
+/* Strip the box on mobile, matching the account/cart icons */
+@media (max-width: 991px) {
+  .wishlist-link {
+    width: auto;
+    height: auto;
+    border: none;
+  }
+}
+.wishlist-link svg path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+}
+.wishlist-count {
+  position: absolute;
+  top: -8px;
+  right: -10px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background-color: var(--_color---red-500);
+  color: var(--_color---white);
+  font-family: var(--_font-family---font-famity-body);
+  font-size: 11px;
+  font-weight: var(--_font-weight---semi-bold);
+  line-height: 18px;
+  text-align: center;
+}
+.wishlist-count[hidden] {
+  display: none;
+}
+
+/* ─── Wishlist page: product grid + per-card actions ─── */
+.wishlist-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+.wishlist-grid[hidden] {
+  display: none;
+}
+@media (max-width: 991px) {
+  .wishlist-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 479px) {
+  .wishlist-grid {
+    gap: 16px;
+  }
+}
+/* JS-injected cards: ProductCard's scoped 3:4 ratio can't reach them */
+.wishlist-grid .product-main-thumbnail,
+.wishlist-grid .product-secondary-thumbnail {
+  aspect-ratio: 3 / 4;
+  width: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+.wishlist-atc {
+  width: 100%;
+  margin-top: 14px;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 2px;
+  background-color: var(--_color---black);
+  color: var(--_color---white);
+  font-family: var(--_font-family---font-famity-body);
+  font-size: var(--_font-sizes---body-text-small);
+  font-weight: var(--_font-weight---semi-bold);
+  letter-spacing: var(--_letter-spacing---letter-space-3);
+  cursor: pointer;
+  transition: background-color 0.25s ease, opacity 0.2s ease;
+}
+.wishlist-atc:hover:not(:disabled) {
+  background-color: var(--_color---neutral-700, #2a2724);
+}
+.wishlist-atc:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.wishlist-atc.is-loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+.wishlist-empty {
+  text-align: center;
+  padding: 20px 0 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+.wishlist-empty[hidden] {
+  display: none;
+}
+.wishlist-empty-text {
+  max-width: 480px;
+  font-size: var(--_font-sizes---body-text-large);
+  color: var(--_color---neutral-600);
 }
 
 /* ─── Shop: filter result info + clear ─── */
@@ -1904,6 +2522,18 @@ a.header-dropdown-text-block {
   color: var(--_color---white);
 }
 
+/* Popular-products list: constrain the tall portrait thumbnail to a square so
+   the row stays compact (the block is 90px wide; image fills + crops). */
+.popular-product-thumbnail-block {
+  aspect-ratio: 1 / 1;
+}
+.popular-product-thumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
 /* Popular-products list: gentle thumbnail zoom + red title on hover */
 .popular-product-thumbnail {
   transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
@@ -1944,6 +2574,7 @@ a.header-dropdown-text-block {
   .pdp-lightbox { transition: none; }
   .product-lightbox:hover .product-image,
   .popular-product-block:hover .popular-product-thumbnail { transform: none; }
+  .pdp-readmore:hover span { transform: none; }
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -2102,6 +2733,14 @@ a.header-dropdown-text-block {
 .best-seller-banner-wrapper {
   border-radius: 24px;
   box-shadow: 0 26px 60px -40px rgba(26, 23, 20, 0.28);
+}
+/* This section stacks the cards in a 2×2 grid, so the default 3:4 portrait makes
+   the whole block very tall. Use a square 1:1 ratio here only — the biggest height
+   cut, with object-position keeping the model's upper body in frame (extra-specific
+   to beat ProductCard's scoped 3:4). */
+.best-seller-collection-grid .product-tab-wrapper .product-main-thumbnail,
+.best-seller-collection-grid .product-tab-wrapper .product-secondary-thumbnail {
+  aspect-ratio: 1 / 1;
 }
 .best-seller-image-block,
 .best-seller-bg-image {
@@ -2943,14 +3582,15 @@ a.header-dropdown-text-block {
 .home-hero-contact-block .home-hero-funfact-wrapper.reveal  { transition-delay: 0.58s; }
 .home-hero-contact-block .button-wrapper.reveal             { transition-delay: 0.72s; }
 
-/* Headline rises a touch further and clears a soft blur for an editorial focus-in */
+/* Headline rises a touch further for an editorial focus-in. No blur: a blurred
+   H1 above the fold reads like the page is still loading on reload (the reveal
+   plays its blur→sharp transition only once JS adds .visible). Rise + fade is
+   enough of an entrance and never looks "unloaded". */
 .home-hero-contact-block .home-hero-title.reveal {
   transform: translateY(80px);
-  filter: blur(10px);
 }
 .home-hero-contact-block .home-hero-title.reveal.visible {
   transform: translateY(0);
-  filter: blur(0);
 }
 
 /* The brand-red eyebrow rule draws itself in just after the eyebrow appears */
@@ -3109,4 +3749,254 @@ a.header-dropdown-text-block {
     max-width: 100%;
     text-align: center;
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Shop filters → slide-in drawer on mobile / tablet (≤991px)
+   ───────────────────────────────────────────────────────────────────────────
+   Desktop keeps the static sidebar. On ≤991px the "Filter" button opens the
+   sidebar inner wrapper as an off-canvas panel (slides from the left) over a
+   dimming overlay, mirroring the CartDrawer pattern. Drawer chrome (overlay,
+   header, footer) is hidden on desktop. State is driven by .is-open in
+   src/lib/facets.ts, which also re-applies it after AJAX region swaps.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.filter-drawer-overlay,
+.filter-drawer-head,
+.filter-drawer-foot { display: none; }
+
+@media (max-width: 991px) {
+  /* The filter bar is just the trigger row now (no inline accordion). */
+  .product-sidbar-main { display: block; max-width: none; }
+  .product-sidebar-mobile-accordion {
+    display: flex;
+    justify-content: flex-start;
+    padding-right: 0;
+    margin: 0;
+  }
+  .product-filter {
+    width: 100%;
+    justify-content: space-between;
+    cursor: pointer;
+  }
+  /* The arrow SVG has no intrinsic size — clamp it so it doesn't fill the row. */
+  .product-sidebar-accordion-arrow {
+    flex: none;
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Dimming overlay behind the panel. */
+  .filter-drawer-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(26, 23, 20, 0.45);
+    z-index: 9998;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .filter-drawer-overlay.is-open { opacity: 1; pointer-events: auto; }
+
+  /* The sidebar inner wrapper becomes the off-canvas panel. */
+  .product-sidebar-inner-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: min(86vw, 360px);
+    background: var(--_color---white);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    transform: translateX(-100%);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 4px 0 30px rgba(26, 23, 20, 0.16);
+    overflow: hidden; /* children scroll, not the panel */
+  }
+  .product-sidebar-inner-wrapper.is-open { transform: translateX(0); }
+
+  /* Filters stack in a single column inside the drawer (override the old
+     two-up accordion grid) and become the scroll area. */
+  .product-sidbar-wrapper {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    margin-top: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 20px;
+  }
+
+  /* Drawer header. */
+  .filter-drawer-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex: none;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--_color---neutral-300);
+  }
+  .filter-drawer-title {
+    font-family: var(--_font-family---font-famity-heading);
+    font-size: 18px;
+    font-weight: var(--_font-weight---semi-bold);
+    color: var(--_color---black);
+  }
+  .filter-drawer-close {
+    width: 44px;
+    height: 44px;
+    margin: -10px -12px -10px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--_color---black);
+  }
+
+  /* Drawer footer: clear + apply (apply just closes — filtering is live). */
+  .filter-drawer-foot {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: none;
+    padding: 14px 20px calc(14px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--_color---neutral-300);
+  }
+  .filter-drawer-clear {
+    flex: none;
+    font-size: 15px;
+    color: var(--_color---neutral-700);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .filter-drawer-clear:hover { color: var(--_color---red-500); }
+  .filter-drawer-apply {
+    flex: 1 1 auto;
+    padding: 14px 18px;
+    border: none;
+    border-radius: var(--_border-radius---radius-xs);
+    background: var(--_color---black);
+    color: var(--_color---white);
+    font-family: var(--_font-family---font-famity-heading);
+    font-size: 15px;
+    font-weight: var(--_font-weight---semi-bold);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  .filter-drawer-apply:hover { background: var(--_color---neutral-700); }
+
+  /* Lock the page behind the open drawer. */
+  body.filter-drawer-open { overflow: hidden; }
+
+  /* Toolbar: stack Filter + Sort as two full-width pills, result count as a
+     caption below — instead of the sort floating right with an empty gap. */
+  .product-sidebar-mobile-accordion { margin-bottom: 10px; }
+  .product-archive-wrapper .product-selector-form-block {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    margin-top: 0;
+    margin-bottom: 22px;
+  }
+  .product-selector-form-block .product-selector-form {
+    order: 1;
+    width: 100%;
+    padding-left: 0;
+    border-left: none;
+    justify-content: space-between;
+  }
+  .product-selector-form-block .product-select-input {
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+  }
+  .product-selector-form-block .shop-result-info {
+    order: 2;
+    font-size: var(--_font-sizes---body-text-small);
+    color: var(--_color---neutral-600);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .product-sidebar-inner-wrapper,
+  .filter-drawer-overlay { transition: none; }
+}
+
+/* ════════════════════════════════════════════════════════════
+   Accessibility
+   ════════════════════════════════════════════════════════════ */
+
+/* ─── Skip-to-content link: hidden until focused, then pinned top-left ─── */
+.skip-to-content {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 10000;
+  transform: translateY(-150%);
+  padding: 12px 20px;
+  background: var(--_color---black, #1d1d1d);
+  color: var(--_color---white, #fff);
+  font-family: var(--_font-family---font-famity-heading, sans-serif);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 4px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  transition: transform 0.2s ease;
+}
+.skip-to-content:focus {
+  transform: translateY(0);
+  outline: 2px solid var(--_color---white, #fff);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .skip-to-content { transition: none; }
+}
+
+/* ─── Global keyboard focus ring (fallback for any interactive element
+       without its own :focus-visible rule). Keyboard-only via :focus-visible,
+       so mouse clicks don't show a ring. ─── */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible,
+[role="button"]:focus-visible,
+[role="link"]:focus-visible {
+  outline: 2px solid var(--_color---black, #1d1d1d);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* On the dark footer, a black ring would be invisible — use a light one. */
+.footer a:focus-visible,
+.footer button:focus-visible,
+.footer input:focus-visible,
+.footer select:focus-visible,
+.footer [tabindex]:focus-visible {
+  outline-color: var(--_color---white, #fff);
+}
+
+/* ─── Faceted PLP: loading + entrance polish (AJAX filter/sort/page swaps) ───
+   While a fetch is in flight, the results column (not the filters) dims and
+   ignores input; new results fade in instead of popping. */
+.product-archive-wrapper {
+  transition: opacity 0.25s ease;
+}
+.is-faceting .product-archive-wrapper {
+  opacity: 0.45;
+  pointer-events: none;
+}
+.product-archive-wrapper.is-entering {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .product-archive-wrapper { transition: none; }
 }

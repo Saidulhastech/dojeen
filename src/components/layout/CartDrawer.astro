@@ -14,6 +14,14 @@
     </button>
   </div>
 
+  <!-- Free-shipping progress (hidden until there's a cart with items) -->
+  <div id="cart-freeship" class="cart-freeship" style="display:none">
+    <p class="cart-freeship-text" id="cart-freeship-text"></p>
+    <div class="cart-freeship-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <span class="cart-freeship-fill" id="cart-freeship-fill"></span>
+    </div>
+  </div>
+
   <div class="cart-drawer-body">
     <div id="cart-items-list" class="cart-items-list"></div>
     <div id="cart-empty-state" class="cart-empty-state" style="display:none">
@@ -23,14 +31,16 @@
         <div class="button-bg"></div>
       </a>
     </div>
+    <!-- Upsell rail (rendered by JS; hidden until there are recommendations) -->
+    <div id="cart-upsell" class="cart-upsell" hidden></div>
   </div>
 
   <div id="cart-drawer-footer" class="cart-drawer-footer" style="display:none">
     <div class="cart-subtotal-row">
       <span>Subtotal</span>
-      <span id="cart-subtotal">$ 0.00 USD</span>
+      <span id="cart-subtotal">—</span>
     </div>
-    <a href="/checkout" class="cart-checkout-button">Continue to Checkout</a>
+    <a href="#" id="cart-checkout-btn" class="cart-checkout-button">Continue to Checkout</a>
     <a href="/cart" class="cart-view-link">View Cart</a>
   </div>
 </div>
@@ -91,6 +101,39 @@
     align-items: center;
     justify-content: center;
   }
+
+  /* Free-shipping progress bar */
+  .cart-freeship {
+    flex-shrink: 0;
+    padding: 14px 24px;
+    border-bottom: 1px solid #f2f2f2;
+    background: #faf9f7;
+  }
+  .cart-freeship-text {
+    margin: 0 0 10px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    line-height: 1.4;
+    color: #1d1d1d;
+  }
+  .cart-freeship-text strong { font-weight: 600; }
+  .cart-freeship.is-qualified .cart-freeship-text { color: #14854e; }
+  .cart-freeship-track {
+    position: relative;
+    height: 6px;
+    border-radius: 100px;
+    background: #e7e4df;
+    overflow: hidden;
+  }
+  .cart-freeship-fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 0%;
+    border-radius: 100px;
+    background: #1d1d1d;
+    transition: width 0.45s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.3s ease;
+  }
+  .cart-freeship.is-qualified .cart-freeship-fill { background: #14854e; }
 
   .cart-drawer-body {
     flex: 1;
@@ -244,18 +287,83 @@
     text-underline-offset: 3px;
   }
   .cart-view-link:hover { color: #d0473e; }
+
+  /* ── Cart upsell rail (shared base for drawer + cart page) ── */
+  .upsell-heading {
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #1d1d1d;
+    margin: 0 0 14px;
+  }
+  .upsell-list { display: flex; flex-direction: column; gap: 14px; }
+  .upsell-card { display: flex; align-items: center; gap: 12px; }
+  .upsell-thumb-link { flex-shrink: 0; display: block; }
+  .upsell-thumb {
+    width: 52px;
+    height: 66px;
+    object-fit: cover;
+    display: block;
+    background: #f4f2ef;
+  }
+  .upsell-body { flex: 1; min-width: 0; }
+  .upsell-name {
+    display: block;
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1d1d1d;
+    text-decoration: none;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color 0.2s ease;
+  }
+  .upsell-name:hover { color: #d0473e; }
+  .upsell-price {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-top: 3px;
+    font-size: 13px;
+    color: #1d1d1d;
+  }
+  .upsell-compare { font-size: 12px; color: #9b9b9b; text-decoration: line-through; }
+  .upsell-add {
+    flex-shrink: 0;
+    border: 1px solid #1d1d1d;
+    border-radius: 2px;
+    background: #fff;
+    color: #1d1d1d;
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 8px 14px;
+    min-height: 36px;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+  .upsell-add:hover { background: #1d1d1d; color: #fff; }
+  .upsell-add:disabled { opacity: 0.6; cursor: default; }
+
+  /* Drawer placement: separated from the item list, scrolls with the body */
+  .cart-upsell {
+    margin-top: 8px;
+    padding-top: 20px;
+    border-top: 1px solid #f2f2f2;
+  }
+  .cart-upsell[hidden] { display: none; }
 </style>
 
+<!-- Open/close (no imports) — defines the global drawer opener. -->
 <script is:inline>
   (function () {
     var drawer = document.getElementById('cart-drawer');
     var overlay = document.getElementById('cart-drawer-overlay');
     var closeBtn = document.getElementById('cartCloseBtn');
-    var itemsList = document.getElementById('cart-items-list');
-    var emptyState = document.getElementById('cart-empty-state');
-    var footer = document.getElementById('cart-drawer-footer');
-    var subtotalEl = document.getElementById('cart-subtotal');
-
     function openDrawer() {
       drawer && drawer.classList.add('open');
       overlay && overlay.classList.add('open');
@@ -266,86 +374,130 @@
       overlay && overlay.classList.remove('open');
       overlay && overlay.setAttribute('aria-hidden', 'true');
     }
-
     window.__dojeenOpenCart = openDrawer;
-
     closeBtn && closeBtn.addEventListener('click', closeDrawer);
     overlay && overlay.addEventListener('click', closeDrawer);
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeDrawer(); });
+  })();
+</script>
 
-    function getCart() {
-      try { return JSON.parse(localStorage.getItem('dojeen_cart') || '[]'); } catch (e) { return []; }
-    }
-    function saveCart(items) {
-      localStorage.setItem('dojeen_cart', JSON.stringify(items));
-      window.dispatchEvent(new CustomEvent('cart:updated', { detail: { items: items } }));
-    }
-    function formatPrice(n) {
-      return '$ ' + n.toFixed(2) + ' USD';
-    }
+<!-- Rendering — bundled so it can drive the server cart via @/lib/cart. -->
+<script>
+  import { initCart, getCurrentCart, updateLine, removeLine, type Cart, type CartLine } from '@/lib/cart';
+  import { formatMoney } from '@/lib/money';
+  import { freeShipProgress } from '@/lib/shipping';
+  import { renderUpsell } from '@/lib/cart-upsell';
+  import { sizedImg } from '@/lib/img';
 
-    function renderCart() {
-      var items = getCart();
-      if (!itemsList) return;
+  const itemsList = document.getElementById('cart-items-list');
+  const upsellEl = document.getElementById('cart-upsell');
+  const emptyState = document.getElementById('cart-empty-state');
+  const footer = document.getElementById('cart-drawer-footer');
+  const subtotalEl = document.getElementById('cart-subtotal');
+  const checkoutBtn = document.getElementById('cart-checkout-btn') as HTMLAnchorElement | null;
+
+  const freeship = document.getElementById('cart-freeship');
+  const freeshipText = document.getElementById('cart-freeship-text');
+  const freeshipFill = document.getElementById('cart-freeship-fill');
+  const freeshipTrack = freeship?.querySelector<HTMLElement>('.cart-freeship-track') ?? null;
+
+  function renderFreeShip(cart: Cart | null) {
+    if (!freeship) return;
+    const lines = cart?.lines ?? [];
+    if (!cart || lines.length === 0) {
+      freeship.style.display = 'none';
+      return;
+    }
+    freeship.style.display = 'block';
+    const { amount, currencyCode } = cart.cost.subtotalAmount;
+    const { qualified, remaining, pct } = freeShipProgress(Number(amount));
+    freeship.classList.toggle('is-qualified', qualified);
+    if (freeshipText) {
+      freeshipText.innerHTML = qualified
+        ? "🎉 You've unlocked <strong>free shipping</strong>!"
+        : 'Add <strong>' + formatMoney(remaining, currencyCode) + '</strong> more for free shipping';
+    }
+    if (freeshipFill) freeshipFill.style.width = pct + '%';
+    if (freeshipTrack) freeshipTrack.setAttribute('aria-valuenow', String(Math.round(pct)));
+  }
+
+  const esc = (s: unknown) =>
+    String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c] as string);
+
+  const lineMeta = (line: CartLine) =>
+    (line.merchandise.selectedOptions || [])
+      .filter((o) => o.value && o.value.toLowerCase() !== 'default title')
+      .map((o) => '<div class="cart-item-meta">' + esc(o.name) + ': ' + esc(o.value) + '</div>')
+      .join('');
+
+  function render(cart: Cart | null) {
+    if (!itemsList) return;
+    const lines = cart?.lines ?? [];
+    renderFreeShip(cart);
+    void renderUpsell(upsellEl, cart, { limit: 3 });
+
+    if (lines.length === 0) {
+      itemsList.style.display = 'none';
       itemsList.innerHTML = '';
-      if (items.length === 0) {
-        itemsList.style.display = 'none';
-        emptyState && (emptyState.style.display = 'flex');
-        footer && (footer.style.display = 'none');
-      } else {
-        itemsList.style.display = 'flex';
-        emptyState && (emptyState.style.display = 'none');
-        footer && (footer.style.display = 'block');
-        var total = 0;
-        items.forEach(function (item, idx) {
-          total += item.price * item.quantity;
-          var el = document.createElement('div');
-          el.className = 'cart-item';
-          el.innerHTML =
-            '<img src="' + (item.image || '') + '" class="cart-item-image" alt="' + item.name + '" />' +
+      if (emptyState) emptyState.style.display = 'flex';
+      if (footer) footer.style.display = 'none';
+      return;
+    }
+
+    itemsList.style.display = 'flex';
+    if (emptyState) emptyState.style.display = 'none';
+    if (footer) footer.style.display = 'block';
+
+    itemsList.innerHTML = lines
+      .map((line) => {
+        const m = line.merchandise;
+        const image = m.image?.url || m.product?.featuredImage?.url || '';
+        const name = m.product?.title || m.title || '';
+        const unit = formatMoney(
+          Number(line.cost.amountPerQuantity.amount),
+          line.cost.amountPerQuantity.currencyCode,
+        );
+        return (
+          '<div class="cart-item">' +
+            '<img src="' + esc(sizedImg(image, 200)) + '" class="cart-item-image" alt="' + esc(name) + '" loading="lazy" />' +
             '<div class="cart-item-info">' +
-              '<div class="cart-item-name">' + item.name + '</div>' +
-              '<div class="cart-item-price">' + formatPrice(item.price) + '</div>' +
-              (item.color ? '<div class="cart-item-meta">Color: ' + item.color + '</div>' : '') +
-              (item.size ? '<div class="cart-item-meta">Size: ' + item.size + '</div>' : '') +
-              '<button class="cart-remove-btn" data-action="remove" data-idx="' + idx + '">Remove</button>' +
+              '<div class="cart-item-name">' + esc(name) + '</div>' +
+              '<div class="cart-item-price">' + unit + '</div>' +
+              lineMeta(line) +
+              '<button class="cart-remove-btn" data-action="remove" data-line="' + esc(line.id) + '">Remove</button>' +
             '</div>' +
             '<div class="cart-item-qty-col">' +
-              '<button class="cart-qty-btn" data-action="inc" data-idx="' + idx + '">+</button>' +
-              '<span class="cart-qty-value">' + item.quantity + '</span>' +
-              '<button class="cart-qty-btn" data-action="dec" data-idx="' + idx + '">−</button>' +
-            '</div>';
-          itemsList.appendChild(el);
-        });
-        if (subtotalEl) subtotalEl.textContent = formatPrice(total);
+              '<button class="cart-qty-btn" data-action="inc" data-line="' + esc(line.id) + '">+</button>' +
+              '<span class="cart-qty-value">' + line.quantity + '</span>' +
+              '<button class="cart-qty-btn" data-action="dec" data-line="' + esc(line.id) + '">−</button>' +
+            '</div>' +
+          '</div>'
+        );
+      })
+      .join('');
 
-        itemsList.querySelectorAll('[data-action]').forEach(function (btn) {
-          btn.addEventListener('click', function () {
-            var cart = getCart();
-            var i = parseInt(btn.getAttribute('data-idx'));
-            var action = btn.getAttribute('data-action');
-            if (action === 'inc') {
-              cart[i].quantity = (cart[i].quantity || 1) + 1;
-              saveCart(cart);
-            } else if (action === 'dec') {
-              if (cart[i].quantity > 1) {
-                cart[i].quantity -= 1;
-                saveCart(cart);
-              } else {
-                cart.splice(i, 1);
-                saveCart(cart);
-              }
-            } else if (action === 'remove') {
-              cart.splice(i, 1);
-              saveCart(cart);
-            }
-            renderCart();
-          });
-        });
-      }
+    if (subtotalEl && cart) {
+      subtotalEl.textContent = formatMoney(
+        Number(cart.cost.subtotalAmount.amount),
+        cart.cost.subtotalAmount.currencyCode,
+      );
     }
+    if (checkoutBtn && cart) checkoutBtn.href = cart.checkoutUrl || '#';
 
-    renderCart();
-    window.addEventListener('cart:updated', renderCart);
-  })();
+    itemsList.querySelectorAll<HTMLElement>('[data-action]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const lineId = btn.getAttribute('data-line') || '';
+        const action = btn.getAttribute('data-action');
+        const line = getCurrentCart()?.lines.find((l) => l.id === lineId);
+        if (!line) return;
+        if (action === 'inc') updateLine(lineId, line.quantity + 1);
+        else if (action === 'dec') updateLine(lineId, line.quantity - 1);
+        else if (action === 'remove') removeLine(lineId);
+      });
+    });
+  }
+
+  window.addEventListener('cart:updated', (e) => render((e as CustomEvent).detail.cart));
+  render(getCurrentCart());
+  initCart();
 </script>

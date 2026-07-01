@@ -1,4 +1,5 @@
 ---
+export const prerender = true;
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import Header from '@/components/layout/Header.astro';
 import Footer from '@/components/layout/Footer.astro';
@@ -17,7 +18,7 @@ const tabData = blogCategories.map((cat) => ({
 
 <BaseLayout title="Blog — Dojeen" description="News, tips, and style advice from the Dojeen team.">
   <Header variant="default" currentPath="/blog" />
-  <main class="main-wrapper">
+  <main id="main-content" class="main-wrapper">
 
     <CommonHero
       subtitle="Recent Blog"

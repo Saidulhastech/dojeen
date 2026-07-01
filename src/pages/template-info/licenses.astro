@@ -1,4 +1,5 @@
 ---
+export const prerender = true;
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import Header from '@/components/layout/Header.astro';
 import Footer from '@/components/layout/Footer.astro';
@@ -7,7 +8,7 @@ import CommonHero from '@/components/ui/CommonHero.astro';
 
 <BaseLayout title="Licenses — Dojeen" description="License information for assets used in the Dojeen template." noIndex={true}>
   <Header variant="default" />
-  <main class="main-wrapper">
+  <main id="main-content" class="main-wrapper">
 
     <CommonHero subtitle="Licenses" title="Asset Licenses & Credits" />
 
