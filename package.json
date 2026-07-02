@@ -63,5 +63,8 @@
   },
   "overrides": {
     "bare-fs": "4.7.2"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "4.61.1"
   }
 }
