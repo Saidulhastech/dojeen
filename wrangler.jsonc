@@ -1,0 +1,25 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // Rename to your Cloudflare Worker name (lowercase, dashes).
+  "name": "dojeen",
+  "compatibility_date": "2026-07-01",
+  // nodejs_compat: the app uses Node-style process.env reads (bridged by the
+  // adapter) plus Web Crypto; this flag enables the Node compat layer.
+  "compatibility_flags": ["nodejs_compat"],
+  // The Astro Cloudflare adapter enables Astro sessions backed by a KV
+  // namespace bound as SESSION. Create one and paste its id here:
+  //   wrangler kv namespace create SESSION
+  // (This app authenticates via httpOnly cookies, not Astro sessions, so the
+  // namespace stays effectively empty — it just satisfies the binding.)
+  "kv_namespaces": [{ "binding": "SESSION", "id": "REPLACE_WITH_KV_NAMESPACE_ID" }],
+  "observability": {
+    "enabled": true
+  }
+  // NOTE: `main` and `assets` are injected by @astrojs/cloudflare at build time
+  // into dist/server/wrangler.json (main -> the generated SSR worker, assets ->
+  // the ASSETS binding). Do not set them here.
+  //
+  // Secrets (SHOPIFY_STOREFRONT_PRIVATE_TOKEN, CUSTOMER_ACCOUNT_API_CLIENT_ID,
+  // etc.) are NOT stored here — set them with `wrangler secret put NAME` or in
+  // the Cloudflare dashboard. See DEPLOY-CLOUDFLARE.md.
+}

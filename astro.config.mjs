@@ -1,14 +1,17 @@
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
-import node from '@astrojs/node';
+import cloudflare from '@astrojs/cloudflare';
 
-// SSR so the Shopify Storefront private token stays on the server
-// and the server cart (httpOnly cookie + /api/cart/*) works.
+// SSR on Cloudflare Workers so the Shopify Storefront private token stays
+// on the server and the server cart (httpOnly cookie + /api/cart/*) works.
 export default defineConfig({
   site: 'https://dojeen.com',
   output: 'server',
-  adapter: node({ mode: 'standalone' }),
+  adapter: cloudflare({
+    // No runtime Sharp on Workers — leave remote (Shopify CDN) images untouched.
+    imageService: 'passthrough',
+  }),
   integrations: [sitemap()],
   compressHTML: true,
   build: { format: 'directory' },

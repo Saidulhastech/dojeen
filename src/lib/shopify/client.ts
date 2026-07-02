@@ -5,7 +5,11 @@
 // server code (Astro frontmatter + /api routes), so the private
 // token never reaches the browser.
 
-/** Read an env var from build-time inline (dev) or runtime process.env (prod node). */
+/**
+ * Read an env var. Must stay lazy (called per-request): on Cloudflare Workers
+ * the runtime env/secrets are injected into process.env at request time, not
+ * at module-eval, so reading at module top-level would see `undefined`.
+ */
 function env(key: string): string | undefined {
   const meta = (import.meta.env as Record<string, string | undefined>)[key];
   if (meta) return meta;
@@ -13,11 +17,14 @@ function env(key: string): string | undefined {
   return proc?.env?.[key];
 }
 
-const DOMAIN = env('SHOPIFY_SHOP_DOMAIN');
-const VERSION = env('SHOPIFY_API_VERSION') ?? '2026-04';
-const TOKEN = env('SHOPIFY_STOREFRONT_PRIVATE_TOKEN');
-
-const ENDPOINT = `https://${DOMAIN}/api/${VERSION}/graphql.json`;
+/** Resolve Shopify config lazily so Workers' per-request env is picked up. */
+function cfg() {
+  const DOMAIN = env('SHOPIFY_SHOP_DOMAIN');
+  const VERSION = env('SHOPIFY_API_VERSION') ?? '2026-04';
+  const TOKEN = env('SHOPIFY_STOREFRONT_PRIVATE_TOKEN');
+  const ENDPOINT = `https://${DOMAIN}/api/${VERSION}/graphql.json`;
+  return { DOMAIN, VERSION, TOKEN, ENDPOINT };
+}
 
 export class ShopifyError extends Error {
   status?: number;
@@ -49,6 +56,7 @@ export async function shopifyFetch<T>(
   variables: Record<string, unknown> = {},
   options: ShopifyFetchOptions = {},
 ): Promise<T> {
+  const { DOMAIN, TOKEN, ENDPOINT } = cfg();
   if (!DOMAIN || !TOKEN) {
     throw new ShopifyError(
       'Missing Shopify config. Set SHOPIFY_SHOP_DOMAIN and SHOPIFY_STOREFRONT_PRIVATE_TOKEN in .env',
@@ -89,4 +97,15 @@ export async function shopifyFetch<T>(
   return json.data;
 }
 
-export const shopifyConfig = { DOMAIN, VERSION, ENDPOINT };
+/** Lazy accessor — reads env per call so Workers' per-request env applies. */
+export const shopifyConfig = {
+  get DOMAIN() {
+    return cfg().DOMAIN;
+  },
+  get VERSION() {
+    return cfg().VERSION;
+  },
+  get ENDPOINT() {
+    return cfg().ENDPOINT;
+  },
+};

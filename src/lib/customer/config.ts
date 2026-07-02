@@ -11,26 +11,43 @@ function env(key: string): string | undefined {
   return proc?.env?.[key];
 }
 
-const CLIENT_ID = env('CUSTOMER_ACCOUNT_API_CLIENT_ID');
-const SHOP_ID = env('SHOPIFY_SHOP_ID');
+const clientId = () => env('CUSTOMER_ACCOUNT_API_CLIENT_ID');
+const shopId = () => env('SHOPIFY_SHOP_ID');
 // 2025-01 is NOT a valid Customer Account API version; default to a supported one.
-const VERSION = env('CUSTOMER_ACCOUNT_API_VERSION') || '2026-04';
+const version = () => env('CUSTOMER_ACCOUNT_API_VERSION') || '2026-04';
 
+/** Lazy getters — env resolved on access so Workers' per-request env applies. */
 export const customerConfig = {
-  clientId: CLIENT_ID,
-  shopId: SHOP_ID,
-  version: VERSION,
-  isConfigured: Boolean(CLIENT_ID && SHOP_ID),
+  get clientId() {
+    return clientId();
+  },
+  get shopId() {
+    return shopId();
+  },
+  get version() {
+    return version();
+  },
+  get isConfigured() {
+    return Boolean(clientId() && shopId());
+  },
 };
 
 /** openid + email get profile basics; customer-account-api:full enables the GraphQL API. */
 export const SCOPES = 'openid email customer-account-api:full';
 
 export const endpoints = {
-  authorize: `https://shopify.com/authentication/${SHOP_ID}/oauth/authorize`,
-  token: `https://shopify.com/authentication/${SHOP_ID}/oauth/token`,
-  logout: `https://shopify.com/authentication/${SHOP_ID}/logout`,
-  graphql: `https://shopify.com/${SHOP_ID}/account/customer/api/${VERSION}/graphql`,
+  get authorize() {
+    return `https://shopify.com/authentication/${shopId()}/oauth/authorize`;
+  },
+  get token() {
+    return `https://shopify.com/authentication/${shopId()}/oauth/token`;
+  },
+  get logout() {
+    return `https://shopify.com/authentication/${shopId()}/logout`;
+  },
+  get graphql() {
+    return `https://shopify.com/${shopId()}/account/customer/api/${version()}/graphql`;
+  },
 };
 
 /** OAuth callback — must match a Callback URI registered in the admin. */

@@ -1,0 +1,14 @@
+# ─────────────────────────────────────────────────────────────
+#  Local Cloudflare runtime vars for `wrangler dev` and the Astro
+#  dev server's platformProxy. Copy to `.dev.vars` (gitignored).
+#  Same values as .env — this file is what the Workers runtime
+#  reads locally. Production secrets go via `wrangler secret put`.
+# ─────────────────────────────────────────────────────────────
+
+SHOPIFY_SHOP_DOMAIN=your-shop.myshopify.com
+SHOPIFY_STOREFRONT_PRIVATE_TOKEN=shpat_xxxxxxxxxxxxxxxxxxxxxxxx
+SHOPIFY_API_VERSION=2026-04
+
+CUSTOMER_ACCOUNT_API_CLIENT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+SHOPIFY_SHOP_ID=000000000000
+CUSTOMER_ACCOUNT_API_VERSION=2026-04
