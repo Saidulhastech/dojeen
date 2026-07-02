@@ -19,26 +19,7 @@ This template runs as an **SSR app on Cloudflare Workers** using the
 
 ---
 
-## 2. Create the SESSION KV namespace (one time)
-
-The Astro adapter enables sessions backed by a KV namespace bound as `SESSION`.
-This app authenticates via httpOnly cookies (not Astro sessions), so the
-namespace stays effectively empty — it only satisfies the binding.
-
-```bash
-npx wrangler kv namespace create SESSION
-```
-
-Copy the printed `id` into **wrangler.jsonc**, replacing
-`REPLACE_WITH_KV_NAMESPACE_ID`:
-
-```jsonc
-"kv_namespaces": [{ "binding": "SESSION", "id": "<the-id-you-got>" }]
-```
-
----
-
-## 3. Set production secrets
+## 2. Set production secrets
 
 These are **secrets** (never commit them). Set each once per Worker:
 
@@ -58,23 +39,38 @@ Settings → Variables and Secrets.)
 > The adapter bridges these into `process.env` at request time, which is what
 > the Shopify client and Customer Account config read.
 
+> **Git-connected builds (Cloudflare CI):** the CI runner can't answer
+> `wrangler secret put` prompts. Set the six variables above as **Secrets** in
+> the dashboard instead: Workers & Pages → your Worker → Settings → Variables
+> and Secrets → add each, type **Secret**, then redeploy.
+
 ---
 
-## 4. Deploy
+## 3. Deploy
+
+**Option A — from your machine:**
 
 ```bash
 npm run deploy
 ```
 
-This runs `astro build` then `wrangler deploy -c dist/server/wrangler.json`
-(the adapter generates that config with the correct `main` and `assets`).
+Runs `astro build` then `wrangler deploy -c dist/server/wrangler.json`.
+
+**Option B — Cloudflare Git integration (push to deploy):**
+
+- Build command: `npm run build`
+- Deploy command: `npx wrangler deploy`
+
+The adapter writes `.wrangler/deploy/config.json`, which redirects
+`wrangler deploy` to the generated `dist/server/wrangler.json` automatically —
+no `-c` flag needed in CI.
 
 Your Worker goes live at `https://dojeen.<your-subdomain>.workers.dev`.
 Add a custom domain under the Worker's **Settings → Domains & Routes**.
 
 ---
 
-## 5. Point Shopify at the live URL
+## 4. Point Shopify at the live URL
 
 After the first deploy, update the OAuth redirect/logout URIs in the Shopify
 admin (Settings → Customer accounts → Customer Account API) to your live origin:
@@ -112,3 +108,6 @@ Both `.env` and `.dev.vars` are gitignored.
   process. Cart/checkout never use it.
 - **`nodejs_compat`** is enabled in `wrangler.jsonc`; the app itself only needs
   Web Crypto + `process.env`, both covered by it.
+- **No KV namespace.** `astro.config.mjs` sets `session: { driver: 'memory' }`,
+  which stops the adapter from requiring a `SESSION` KV binding. The app uses
+  httpOnly cookies, never `Astro.session`, so this driver stays dormant.

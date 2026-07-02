@@ -8,6 +8,12 @@ import cloudflare from '@astrojs/cloudflare';
 export default defineConfig({
   site: 'https://dojeen.com',
   output: 'server',
+  // This app authenticates via httpOnly cookies and never uses Astro sessions.
+  // The Cloudflare adapter otherwise defaults sessions to a KV-backed driver,
+  // which would force a SESSION KV namespace binding at deploy time. Point it at
+  // an in-memory driver instead so no KV namespace is required. (It stays
+  // dormant — nothing reads/writes Astro.session.)
+  session: { driver: 'memory' },
   adapter: cloudflare({
     // No runtime Sharp on Workers — leave remote (Shopify CDN) images untouched.
     imageService: 'passthrough',

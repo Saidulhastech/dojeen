@@ -6,12 +6,9 @@
   // nodejs_compat: the app uses Node-style process.env reads (bridged by the
   // adapter) plus Web Crypto; this flag enables the Node compat layer.
   "compatibility_flags": ["nodejs_compat"],
-  // The Astro Cloudflare adapter enables Astro sessions backed by a KV
-  // namespace bound as SESSION. Create one and paste its id here:
-  //   wrangler kv namespace create SESSION
-  // (This app authenticates via httpOnly cookies, not Astro sessions, so the
-  // namespace stays effectively empty — it just satisfies the binding.)
-  "kv_namespaces": [{ "binding": "SESSION", "id": "REPLACE_WITH_KV_NAMESPACE_ID" }],
+  // No KV namespace needed: astro.config.mjs sets an in-memory session driver,
+  // so the adapter does not inject a SESSION KV binding. (The app uses httpOnly
+  // cookies, never Astro sessions.)
   "observability": {
     "enabled": true
   }
