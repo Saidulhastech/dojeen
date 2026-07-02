@@ -33,6 +33,11 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "build:cloudflare": "astro build",
+    "build:node": "astro build",
+    "build:vercel": "astro build",
+    "build:netlify": "astro build",
+    "start:node": "node ./dist/server/entry.mjs",
     "preview": "astro build && wrangler dev -c dist/server/wrangler.json",
     "deploy": "astro build && wrangler deploy -c dist/server/wrangler.json",
     "cf-typegen": "wrangler types",
@@ -44,10 +49,14 @@
   "dependencies": {
     "@astrojs/check": "^0.9.9",
     "@astrojs/cloudflare": "^13.7.0",
+    "@astrojs/netlify": "^8.1.1",
+    "@astrojs/node": "^11.0.2",
     "@astrojs/sitemap": "^3.7.3",
+    "@astrojs/vercel": "^11.0.2",
     "@tailwindcss/vite": "^4.3.0",
     "astro": "^6.4.4",
-    "tailwindcss": "^4.3.0"
+    "tailwindcss": "^4.3.0",
+    "typescript": "^6.0.3"
   },
   "devDependencies": {
     "wrangler": "^4.106.0"
